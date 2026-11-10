@@ -1,0 +1,117 @@
+{
+  "title": "The Winter Observatory",
+  "author": "Mira Vale",
+  "difficulty": "HARD",
+  "sections": [
+    {
+      "id": 1,
+      "text": "A winter storm has isolated the mountain observatory. Tonight's comet will reveal the safe route down, if you can reach the telescope.",
+      "type": "BEGIN",
+      "options": [
+        {
+          "description": "Climb the frozen outer stairs",
+          "gotoId": 12,
+          "consequence": {
+            "type": "LOSE_HEALTH",
+            "value": "4",
+            "text": "Ice gives way beneath your boots."
+          }
+        },
+        {
+          "description": "Search the keeper's quarters",
+          "gotoId": "20"
+        }
+      ]
+    },
+    {
+      "id": "12",
+      "text": "The outer stair ends beneath a frozen dome. A side door leads into the keeper's quarters.",
+      "type": "NODE",
+      "options": [
+        {
+          "description": "Break through the frozen dome hatch",
+          "gotoId": 40,
+          "consequence": {
+            "type": "LOSE_HEALTH",
+            "value": 4,
+            "text": "Falling ice strikes your shoulder."
+          }
+        },
+        {
+          "description": "Enter the side door",
+          "gotoId": 20
+        }
+      ]
+    },
+    {
+      "id": 20,
+      "text": "The keeper has left hot broth on a low stove and a diagram of the telescope controls.",
+      "type": "NODE",
+      "options": [
+        {
+          "description": "Rest, then use the inside passage",
+          "gotoId": "40",
+          "consequence": {
+            "type": "GAIN_HEALTH",
+            "value": 3,
+            "text": "The broth warms you and steadies your hands."
+          }
+        },
+        {
+          "description": "Return to the observatory entrance",
+          "gotoId": 1
+        }
+      ]
+    },
+    {
+      "id": 40,
+      "text": "The telescope must be aligned by hand. A signal lamp can instead guide the valley team toward you.",
+      "type": "NODE",
+      "options": [
+        {
+          "description": "Turn the frozen alignment wheel",
+          "gotoId": 60,
+          "consequence": {
+            "type": "LOSE_HEALTH",
+            "value": 3,
+            "text": "The cold metal tears your gloves."
+          }
+        },
+        {
+          "description": "Signal the valley team",
+          "gotoId": 90
+        }
+      ]
+    },
+    {
+      "id": "60",
+      "text": "The comet reveals a sheltered descent. You could follow it now or attempt to retrieve one last chart from the damaged dome.",
+      "type": "NODE",
+      "options": [
+        {
+          "description": "Follow the sheltered descent",
+          "gotoId": "100"
+        },
+        {
+          "description": "Retrieve the final chart",
+          "gotoId": "90",
+          "consequence": {
+            "type": "LOSE_HEALTH",
+            "value": 2,
+            "text": "A falling beam clips your back."
+          }
+        }
+      ]
+    },
+    {
+      "id": 90,
+      "text": "The valley team finds the observatory light and reaches you with warm blankets and climbing ropes.",
+      "type": "END"
+    },
+    {
+      "id": "100",
+      "text": "You lead the keepers down the comet-lit route. By morning, every window in the valley is glowing.",
+      "type": "END"
+    }
+  ]
+}

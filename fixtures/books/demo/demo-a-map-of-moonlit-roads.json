@@ -1,0 +1,72 @@
+{
+  "title": "A Map of Moonlit Roads",
+  "author": "Leila North",
+  "difficulty": "EASY",
+  "sections": [
+    {
+      "id": "crossroads",
+      "text": "Your map reveals roads only under moonlight. Tonight, one silver line crosses a bridge and another winds through an orchard.",
+      "type": "BEGIN",
+      "options": [
+        {
+          "description": "Cross the old bridge",
+          "gotoId": "bridge",
+          "consequence": {
+            "type": "LOSE_HEALTH",
+            "value": 2,
+            "text": "A splintered rail cuts your palm."
+          }
+        },
+        {
+          "description": "Follow the orchard road",
+          "gotoId": "orchard"
+        }
+      ]
+    },
+    {
+      "id": "bridge",
+      "text": "From the bridge, you see a sleeping town and a field of falling stars. A path beside the river reaches the orchard.",
+      "type": "NODE",
+      "options": [
+        {
+          "description": "Continue to the town",
+          "gotoId": "town"
+        },
+        {
+          "description": "Take the riverside path",
+          "gotoId": "orchard"
+        }
+      ]
+    },
+    {
+      "id": "orchard",
+      "text": "The orchard keeper offers you an apple and points out two roads: one toward warm windows, the other toward the stars.",
+      "type": "NODE",
+      "options": [
+        {
+          "description": "Eat the apple and travel to town",
+          "gotoId": "town",
+          "consequence": {
+            "type": "GAIN_HEALTH",
+            "value": "2",
+            "text": "The fresh apple gives you energy."
+          }
+        },
+        {
+          "description": "Walk toward the falling stars",
+          "gotoId": "stars"
+        }
+      ]
+    },
+    {
+      "id": "town",
+      "text": "You arrive as the town wakes. Your map gains a new silver line leading to a welcoming inn.",
+      "type": "END"
+    },
+    {
+      "id": "stars",
+      "text": "The stars land as harmless sparks in the grass. You sketch their pattern and discover a road that no map has shown before.",
+      "type": "END"
+    }
+  ]
+}

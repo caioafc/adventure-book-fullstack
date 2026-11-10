@@ -1,0 +1,112 @@
+{
+  "title": "The Last Lighthouse",
+  "author": "Tessa Reed",
+  "difficulty": "MEDIUM",
+  "sections": [
+    {
+      "id": "shore",
+      "text": "A storm has darkened the last working lighthouse on the coast. A ship sounds its horn beyond the reef.",
+      "type": "BEGIN",
+      "options": [
+        {
+          "description": "Climb the exposed tower stair",
+          "gotoId": "stairs",
+          "consequence": {
+            "type": "LOSE_HEALTH",
+            "value": 3,
+            "text": "A wave throws you against the stone steps."
+          }
+        },
+        {
+          "description": "Search the sheltered boathouse",
+          "gotoId": "boathouse"
+        }
+      ]
+    },
+    {
+      "id": "stairs",
+      "text": "Halfway up, the stair divides. A broken ladder leads directly to the lamp, while a covered landing offers shelter.",
+      "type": "NODE",
+      "options": [
+        {
+          "description": "Climb the broken ladder",
+          "gotoId": "lamp",
+          "consequence": {
+            "type": "LOSE_HEALTH",
+            "value": 4,
+            "text": "A rung snaps beneath your foot."
+          }
+        },
+        {
+          "description": "Recover on the covered landing",
+          "gotoId": "landing",
+          "consequence": {
+            "type": "GAIN_HEALTH",
+            "value": 2,
+            "text": "Shelter from the storm helps you recover."
+          }
+        }
+      ]
+    },
+    {
+      "id": "boathouse",
+      "text": "A maintenance passage climbs inside the tower. A rescue boat could also carry you back to the harbor.",
+      "type": "NODE",
+      "options": [
+        {
+          "description": "Take the maintenance passage",
+          "gotoId": "landing"
+        },
+        {
+          "description": "Return to harbor in the rescue boat",
+          "gotoId": "harbor"
+        }
+      ]
+    },
+    {
+      "id": "landing",
+      "text": "The keeper's instructions show how to relight the lamp. A service door also leads back toward the shore.",
+      "type": "NODE",
+      "options": [
+        {
+          "description": "Follow the instructions to the lamp",
+          "gotoId": "lamp"
+        },
+        {
+          "description": "Return to the shore",
+          "gotoId": "shore"
+        }
+      ]
+    },
+    {
+      "id": "lamp",
+      "text": "The lamp can be lit from the protected control wheel. Outside, an unsecured cable might turn the lens more quickly.",
+      "type": "NODE",
+      "options": [
+        {
+          "description": "Use the protected control wheel",
+          "gotoId": "beacon"
+        },
+        {
+          "description": "Pull the unsecured outside cable",
+          "gotoId": "harbor",
+          "consequence": {
+            "type": "LOSE_HEALTH",
+            "value": 10,
+            "text": "The cable tears free and throws you from the platform."
+          }
+        }
+      ]
+    },
+    {
+      "id": "beacon",
+      "text": "The beacon sweeps across the reef. The ship answers with three short blasts and turns toward safe water.",
+      "type": "END"
+    },
+    {
+      "id": "harbor",
+      "text": "The harbor crew receives your warning and prepares rescue boats for the ships still outside.",
+      "type": "END"
+    }
+  ]
+}

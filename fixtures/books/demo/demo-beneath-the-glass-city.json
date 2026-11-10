@@ -1,0 +1,97 @@
+{
+  "title": "Beneath the Glass City",
+  "author": "Jonas Flint",
+  "difficulty": "MEDIUM",
+  "sections": [
+    {
+      "id": "market",
+      "text": "Cracks are spreading through the glass city. Beneath the market, an old service tunnel may lead to the foundation controls.",
+      "type": "BEGIN",
+      "options": [
+        {
+          "description": "Enter the service tunnel",
+          "gotoId": "tunnel",
+          "consequence": {
+            "type": "LOSE_HEALTH",
+            "value": "2",
+            "text": "Broken glass scratches your boots and ankles."
+          }
+        },
+        {
+          "description": "Visit the glassworker's workshop",
+          "gotoId": "workshop"
+        }
+      ]
+    },
+    {
+      "id": "workshop",
+      "text": "The glassworker binds your cuts and explains the city's oldest repair technique. A public terrace offers a safe place to wait.",
+      "type": "NODE",
+      "options": [
+        {
+          "description": "Take the bandages and enter the tunnel",
+          "gotoId": "tunnel",
+          "consequence": {
+            "type": "GAIN_HEALTH",
+            "value": 3,
+            "text": "The bandages stop the bleeding."
+          }
+        },
+        {
+          "description": "Help people gather on the terrace",
+          "gotoId": "terrace"
+        }
+      ]
+    },
+    {
+      "id": "tunnel",
+      "text": "A fallen support blocks the route to the control vault. The market stair remains open behind you.",
+      "type": "NODE",
+      "options": [
+        {
+          "description": "Squeeze beneath the fallen support",
+          "gotoId": "vault",
+          "consequence": {
+            "type": "LOSE_HEALTH",
+            "value": 5,
+            "text": "A sharp edge opens a deep cut."
+          }
+        },
+        {
+          "description": "Return to the market",
+          "gotoId": "market"
+        }
+      ]
+    },
+    {
+      "id": "vault",
+      "text": "Two controls remain intact. One stabilizes the supports slowly; the other releases pressure through a damaged emergency hatch.",
+      "type": "NODE",
+      "options": [
+        {
+          "description": "Stabilize the supports carefully",
+          "gotoId": "terrace"
+        },
+        {
+          "description": "Force the emergency hatch open",
+          "gotoId": "sunrise",
+          "consequence": {
+            "type": "LOSE_HEALTH",
+            "value": 4,
+            "text": "A burst of glass fragments strikes you."
+          }
+        }
+      ]
+    },
+    {
+      "id": "terrace",
+      "text": "From the terrace, you watch the city settle. Neighbors begin replacing the damaged panes together.",
+      "type": "END"
+    },
+    {
+      "id": "sunrise",
+      "text": "Pressure escapes into the dawn air. Sunlight reaches the foundation for the first time in a century.",
+      "type": "END"
+    }
+  ]
+}

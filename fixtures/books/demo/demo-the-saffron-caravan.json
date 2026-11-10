@@ -1,0 +1,97 @@
+{
+  "title": "The Saffron Caravan",
+  "author": "Owen Pike",
+  "difficulty": "MEDIUM",
+  "sections": [
+    {
+      "id": 1,
+      "text": "The saffron caravan has lost its route through the dunes. A rocky ridge promises a view, while a line of palms suggests water.",
+      "type": "BEGIN",
+      "options": [
+        {
+          "description": "Climb the rocky ridge",
+          "gotoId": "ridge",
+          "consequence": {
+            "type": "LOSE_HEALTH",
+            "value": 3,
+            "text": "Loose stones cut your hands."
+          }
+        },
+        {
+          "description": "Lead the caravan toward the well",
+          "gotoId": "well",
+          "consequence": {
+            "type": "GAIN_HEALTH",
+            "value": 2,
+            "text": "Fresh water revives you."
+          }
+        }
+      ]
+    },
+    {
+      "id": "ridge",
+      "text": "You spot an oasis beyond a steep descent. The caravan's old camp lies in the opposite direction.",
+      "type": "NODE",
+      "options": [
+        {
+          "description": "Descend toward the oasis",
+          "gotoId": "oasis",
+          "consequence": {
+            "type": "LOSE_HEALTH",
+            "value": "4",
+            "text": "You slide down the sharp slope."
+          }
+        },
+        {
+          "description": "Return to the old camp",
+          "gotoId": "camp"
+        }
+      ]
+    },
+    {
+      "id": "well",
+      "text": "Beside the well, a traveler has drawn a route to the oasis. The dunes behind you lead back to the starting point.",
+      "type": "NODE",
+      "options": [
+        {
+          "description": "Follow the traveler's route",
+          "gotoId": "oasis"
+        },
+        {
+          "description": "Reconsider the route at the dunes",
+          "gotoId": 1
+        }
+      ]
+    },
+    {
+      "id": "oasis",
+      "text": "The oasis keeper points toward the city gates. A tempting shortcut crosses a salt flat with a fragile surface.",
+      "type": "NODE",
+      "options": [
+        {
+          "description": "Take the marked road to the city",
+          "gotoId": "city"
+        },
+        {
+          "description": "Try the salt-flat shortcut",
+          "gotoId": "camp",
+          "consequence": {
+            "type": "LOSE_HEALTH",
+            "value": 6,
+            "text": "The crust breaks and you struggle through burning salt water."
+          }
+        }
+      ]
+    },
+    {
+      "id": "city",
+      "text": "The caravan reaches the city before the market closes. Saffron merchants greet you beneath bright awnings.",
+      "type": "END"
+    },
+    {
+      "id": "camp",
+      "text": "You find shelter at the caravan camp and mark the dangerous route for the next crossing.",
+      "type": "END"
+    }
+  ]
+}

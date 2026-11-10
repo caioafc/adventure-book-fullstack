@@ -1,0 +1,137 @@
+{
+  "title": "The Drowned Archive",
+  "author": "Jonas Flint",
+  "difficulty": "HARD",
+  "sections": [
+    {
+      "id": "quay",
+      "text": "The tide is rising through an abandoned archive. Its final catalogue may hold the names of a town lost beneath the sea.",
+      "type": "BEGIN",
+      "options": [
+        {
+          "description": "Wade directly into the flooded stacks",
+          "gotoId": "stacks",
+          "consequence": {
+            "type": "LOSE_HEALTH",
+            "value": 3,
+            "text": "The cold water leaves you shaking."
+          }
+        },
+        {
+          "description": "Look for a skiff along the quay",
+          "gotoId": "skiff"
+        }
+      ]
+    },
+    {
+      "id": "skiff",
+      "text": "A skiff floats beside a sheltered entrance. The harbor road remains clear if you decide to abandon the search.",
+      "type": "NODE",
+      "options": [
+        {
+          "description": "Row to the sheltered entrance",
+          "gotoId": "stacks"
+        },
+        {
+          "description": "Return along the harbor road",
+          "gotoId": "home"
+        }
+      ]
+    },
+    {
+      "id": "stacks",
+      "text": "Loose shelves form a narrow bridge to the catalogue room. Behind you, the quay is still visible through the entrance.",
+      "type": "NODE",
+      "options": [
+        {
+          "description": "Cross the shelves to the catalogue",
+          "gotoId": "index",
+          "consequence": {
+            "type": "LOSE_HEALTH",
+            "value": "4",
+            "text": "A shelf collapses and bruises your ribs."
+          }
+        },
+        {
+          "description": "Retreat to the quay",
+          "gotoId": "quay"
+        }
+      ]
+    },
+    {
+      "id": "index",
+      "text": "The catalogue points toward a dry bell chamber and a submerged vault. A rescue kit hangs near the chamber door.",
+      "type": "NODE",
+      "options": [
+        {
+          "description": "Take the rescue kit into the bell chamber",
+          "gotoId": "bell",
+          "consequence": {
+            "type": "GAIN_HEALTH",
+            "value": 2,
+            "text": "Dry bandages help you recover."
+          }
+        },
+        {
+          "description": "Dive straight into the submerged vault",
+          "gotoId": "deep",
+          "consequence": {
+            "type": "LOSE_HEALTH",
+            "value": 5,
+            "text": "The dive leaves you short of breath."
+          }
+        }
+      ]
+    },
+    {
+      "id": "bell",
+      "text": "A sealed copy of the catalogue rests beside the bell. A lower stair leads toward the original records.",
+      "type": "NODE",
+      "options": [
+        {
+          "description": "Carry the sealed catalogue to safety",
+          "gotoId": "saved"
+        },
+        {
+          "description": "Descend toward the original records",
+          "gotoId": "deep",
+          "consequence": {
+            "type": "LOSE_HEALTH",
+            "value": 2,
+            "text": "A rusted step cuts your leg."
+          }
+        }
+      ]
+    },
+    {
+      "id": "deep",
+      "text": "Water presses against the vault door. A damaged return channel leads back toward the harbor.",
+      "type": "NODE",
+      "options": [
+        {
+          "description": "Force the vault door and retrieve the records",
+          "gotoId": "saved",
+          "consequence": {
+            "type": "LOSE_HEALTH",
+            "value": 6,
+            "text": "The rushing water slams you against the wall."
+          }
+        },
+        {
+          "description": "Escape through the return channel",
+          "gotoId": "home"
+        }
+      ]
+    },
+    {
+      "id": "saved",
+      "text": "The archive's names return to the town registry. Families gather to read the stories that the tide almost erased.",
+      "type": "END"
+    },
+    {
+      "id": "home",
+      "text": "You reach the harbor and warn the archivists about the rising water. They begin planning a safer expedition.",
+      "type": "END"
+    }
+  ]
+}

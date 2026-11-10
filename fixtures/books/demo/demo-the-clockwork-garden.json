@@ -1,0 +1,92 @@
+{
+  "title": "The Clockwork Garden",
+  "author": "Owen Pike",
+  "difficulty": "EASY",
+  "sections": [
+    {
+      "id": 1,
+      "text": "A mechanical garden has stopped one minute before spring. Beyond its gate, brass flowers bow toward a silent fountain.",
+      "type": "BEGIN",
+      "options": [
+        {
+          "description": "Inspect the fountain",
+          "gotoId": 10
+        },
+        {
+          "description": "Climb into the gear house",
+          "gotoId": 20,
+          "consequence": {
+            "type": "LOSE_HEALTH",
+            "value": 4,
+            "text": "A loose gear catches your sleeve and strikes your shoulder."
+          }
+        }
+      ]
+    },
+    {
+      "id": 10,
+      "text": "A gardener made of copper points to a winding key beneath the water. A sheltered bench stands beside the basin.",
+      "type": "NODE",
+      "options": [
+        {
+          "description": "Rest on the bench, then wind the key",
+          "gotoId": 30,
+          "consequence": {
+            "type": "GAIN_HEALTH",
+            "value": "2",
+            "text": "The warm bench eases your aches."
+          }
+        },
+        {
+          "description": "Look for a spare key in the gear house",
+          "gotoId": 20
+        }
+      ]
+    },
+    {
+      "id": 20,
+      "text": "Inside the gear house, a turning wheel blocks the control panel. A maintenance ladder leads back to the entrance.",
+      "type": "NODE",
+      "options": [
+        {
+          "description": "Reach through the moving wheel",
+          "gotoId": 30,
+          "consequence": {
+            "type": "LOSE_HEALTH",
+            "value": 3,
+            "text": "A spoke strikes your hand."
+          }
+        },
+        {
+          "description": "Return down the maintenance ladder",
+          "gotoId": 1
+        }
+      ]
+    },
+    {
+      "id": 30,
+      "text": "The control panel offers two settings: awaken every flower at once, or let the garden bloom slowly with the seasons.",
+      "type": "NODE",
+      "options": [
+        {
+          "description": "Awaken the entire garden",
+          "gotoId": 100
+        },
+        {
+          "description": "Choose the seasonal setting",
+          "gotoId": 200
+        }
+      ]
+    },
+    {
+      "id": 100,
+      "text": "Brass petals open across the garden. The fountain rings like a hundred tiny bells, announcing spring.",
+      "type": "END"
+    },
+    {
+      "id": 200,
+      "text": "One silver flower opens beside the gate. The gardener nods, content to let the others follow in their own time.",
+      "type": "END"
+    }
+  ]
+}

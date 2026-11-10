@@ -1,0 +1,137 @@
+{
+  "title": "Signal from Ember Station",
+  "author": "Leila North",
+  "difficulty": "HARD",
+  "sections": [
+    {
+      "id": "airlock",
+      "text": "Ember Station is drifting toward a solar flare. A broken emergency signal repeats from somewhere beyond the airlock.",
+      "type": "BEGIN",
+      "options": [
+        {
+          "description": "Cross the damaged gantry",
+          "gotoId": "gantry",
+          "consequence": {
+            "type": "LOSE_HEALTH",
+            "value": 4,
+            "text": "A loose panel strikes your suit."
+          }
+        },
+        {
+          "description": "Check the medical bay first",
+          "gotoId": "medbay",
+          "consequence": {
+            "type": "GAIN_HEALTH",
+            "value": "4",
+            "text": "An emergency patch treats your injuries."
+          }
+        }
+      ]
+    },
+    {
+      "id": "gantry",
+      "text": "The gantry reaches a reactor access door. A narrow service route also leads to the communications room.",
+      "type": "NODE",
+      "options": [
+        {
+          "description": "Force the reactor access door",
+          "gotoId": "reactor",
+          "consequence": {
+            "type": "LOSE_HEALTH",
+            "value": 4,
+            "text": "Superheated air burns through your glove."
+          }
+        },
+        {
+          "description": "Take the service route to communications",
+          "gotoId": "comms"
+        }
+      ]
+    },
+    {
+      "id": "medbay",
+      "text": "The medical bay has one working diagnostic screen. Its map shows a safe route to communications and a return passage to the airlock.",
+      "type": "NODE",
+      "options": [
+        {
+          "description": "Follow the map to communications",
+          "gotoId": "comms"
+        },
+        {
+          "description": "Return to the airlock",
+          "gotoId": "airlock"
+        }
+      ]
+    },
+    {
+      "id": "comms",
+      "text": "The signal needs power from the reactor relay. An escape shuttle remains connected to the station.",
+      "type": "NODE",
+      "options": [
+        {
+          "description": "Head for the reactor relay",
+          "gotoId": "reactor"
+        },
+        {
+          "description": "Evacuate in the shuttle",
+          "gotoId": "shuttle"
+        }
+      ]
+    },
+    {
+      "id": "reactor",
+      "text": "A manual switch can restore the relay. The shuttle passage is filling with hot vapor.",
+      "type": "NODE",
+      "options": [
+        {
+          "description": "Reach the manual relay switch",
+          "gotoId": "relay",
+          "consequence": {
+            "type": "LOSE_HEALTH",
+            "value": 3,
+            "text": "Radiant heat drains your strength."
+          }
+        },
+        {
+          "description": "Retreat through the shuttle passage",
+          "gotoId": "shuttle",
+          "consequence": {
+            "type": "LOSE_HEALTH",
+            "value": 2,
+            "text": "Hot vapor scalds your arm."
+          }
+        }
+      ]
+    },
+    {
+      "id": "relay",
+      "text": "The relay comes alive. You can transmit from behind its shield, or attempt a dangerous external antenna repair.",
+      "type": "NODE",
+      "options": [
+        {
+          "description": "Transmit from behind the shield",
+          "gotoId": "rescue"
+        },
+        {
+          "description": "Repair the antenna outside",
+          "gotoId": "shuttle",
+          "consequence": {
+            "type": "LOSE_HEALTH",
+            "value": 12,
+            "text": "The flare overwhelms your suit shielding."
+          }
+        }
+      ]
+    },
+    {
+      "id": "rescue",
+      "text": "Your signal reaches a nearby freighter. Rescue lights appear beyond the station windows.",
+      "type": "END"
+    },
+    {
+      "id": "shuttle",
+      "text": "The shuttle carries the station's logs away from the flare. A patrol vessel answers your distress beacon.",
+      "type": "END"
+    }
+  ]
+}
