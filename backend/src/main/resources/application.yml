@@ -12,3 +12,8 @@ spring:
 
 server:
   port: ${PORT:8080}
+
+import:
+  enabled: ${BOOK_IMPORT_ENABLED:true}
+  directory: ${BOOK_IMPORT_DIRECTORY:../books}
+  scan-interval-ms: ${BOOK_IMPORT_SCAN_INTERVAL_MS:30000}

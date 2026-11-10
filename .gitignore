@@ -6,6 +6,14 @@ backend/data/
 *.mv.db
 *.trace.db
 
+# Operational inbox and archives
+/books/ready/*
+!/books/ready/.gitkeep
+/books/added/*
+!/books/added/.gitkeep
+/books/failed/*
+!/books/failed/.gitkeep
+
 # IDE and operating-system files
 .idea/
 *.iml

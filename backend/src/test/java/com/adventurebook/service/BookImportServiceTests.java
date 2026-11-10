@@ -156,9 +156,9 @@ class BookImportServiceTests {
             "pirates-jade-sea.json, Destination section does not exist: 999",
             "pirates-jade-sea.json, Non-ending section"
     })
-    void reportsErrorsFromEverySuppliedFixture(String filename, String expectedError) throws Exception {
+    void reportsErrorsFromInvalidTestBooks(String filename, String expectedError) throws Exception {
         try (InputStream input = getClass().getResourceAsStream("/books/" + filename)) {
-            assertThat(input).as("Supplied fixture %s", filename).isNotNull();
+            assertThat(input).as("Test resource %s", filename).isNotNull();
             byte[] content = input.readAllBytes();
             assertThatThrownBy(() -> service.parse(content)).isInstanceOf(InvalidBookException.class)
                     .hasMessageContaining(expectedError);

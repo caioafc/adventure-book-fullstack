@@ -125,7 +125,7 @@ class BookIngestionTests {
 
     @ParameterizedTest
     @ValueSource(strings = {"dragon-quest.json", "the-prisoner.json", "crystal-caverns.json", "pirates-jade-sea.json"})
-    void rejectsInvalidFixturesWithoutInsertingAnything(String filename) throws Exception {
+    void rejectsInvalidTestBooksWithoutInsertingAnything(String filename) throws Exception {
         try (InputStream input = getClass().getResourceAsStream("/books/" + filename)) {
             assertThat(input).isNotNull();
             BookImportResultDTO result = service.importBook(filename, input.readAllBytes());
