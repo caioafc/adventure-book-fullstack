@@ -1,0 +1,14 @@
+spring:
+  application:
+    name: adventure-book-backend
+  datasource:
+    url: jdbc:h2:file:${ADVENTURE_DB_PATH:./data/adventure-book}
+    username: ${ADVENTURE_DB_USERNAME:sa}
+    password: ${ADVENTURE_DB_PASSWORD:}
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+
+server:
+  port: ${PORT:8080}

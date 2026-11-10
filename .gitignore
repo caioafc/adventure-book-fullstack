@@ -1,0 +1,14 @@
+# Build outputs
+backend/target/
+
+# Local file-based H2 databases
+backend/data/
+*.mv.db
+*.trace.db
+
+# IDE and operating-system files
+.idea/
+*.iml
+.vscode/
+.DS_Store
+Thumbs.db
