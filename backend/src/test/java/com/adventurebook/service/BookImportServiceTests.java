@@ -6,22 +6,20 @@ import java.util.stream.Stream;
 
 import com.adventurebook.dto.BookImportDTO;
 import com.adventurebook.exception.InvalidBookException;
-import com.adventurebook.service.impl.BookImportServiceImpl;
-import jakarta.validation.Validation;
-import jakarta.validation.ValidatorFactory;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
-import tools.jackson.databind.json.JsonMapper;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE,
+        properties = "spring.datasource.url=jdbc:h2:mem:book-import-validation;DB_CLOSE_DELAY=-1")
 class BookImportServiceTests {
 
     private static final String OPTION = """
@@ -35,19 +33,8 @@ class BookImportServiceTests {
                {"id":"500","text":"Free","type":"END"}]}
             """.formatted(OPTION);
 
-    private static ValidatorFactory validatorFactory;
-    private static BookImportService service;
-
-    @BeforeAll
-    static void setUp() {
-        validatorFactory = Validation.buildDefaultValidatorFactory();
-        service = new BookImportServiceImpl(JsonMapper.builder().build(), validatorFactory.getValidator());
-    }
-
-    @AfterAll
-    static void closeValidator() {
-        validatorFactory.close();
-    }
+    @Autowired
+    private BookImportService service;
 
     @Test
     void normalizesNumericAndStringIdsAndParsesStringConsequenceValues() {
@@ -190,11 +177,11 @@ class BookImportServiceTests {
         });
     }
 
-    private static BookImportDTO parse(String json) {
+    private BookImportDTO parse(String json) {
         return service.parse(json.getBytes(StandardCharsets.UTF_8));
     }
 
-    private static void assertRejected(String json, String expectedError) {
+    private void assertRejected(String json, String expectedError) {
         assertThatThrownBy(() -> parse(json)).isInstanceOf(InvalidBookException.class)
                 .hasMessageContaining(expectedError);
     }

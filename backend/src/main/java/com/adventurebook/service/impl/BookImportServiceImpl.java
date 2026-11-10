@@ -2,22 +2,34 @@ package com.adventurebook.service.impl;
 
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.HashSet;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Set;
+import java.util.Map;
 
 import com.adventurebook.dto.BookImportDTO;
-import com.adventurebook.enums.SectionType;
+import com.adventurebook.dto.BookImportResultDTO;
+import com.adventurebook.enums.BookImportStatus;
 import com.adventurebook.exception.InvalidBookException;
+import com.adventurebook.model.Book;
+import com.adventurebook.model.BookOption;
+import com.adventurebook.model.BookSection;
+import com.adventurebook.repository.BookOptionRepository;
+import com.adventurebook.repository.BookRepository;
+import com.adventurebook.repository.BookSectionRepository;
 import com.adventurebook.service.BookImportService;
 import com.adventurebook.exception.BookValidationError;
 import jakarta.validation.Validator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.DeserializationFeature;
 import tools.jackson.databind.cfg.EnumFeature;
 import tools.jackson.databind.json.JsonMapper;
+
+import static com.adventurebook.service.util.BookImportUtils.contentHash;
+import static com.adventurebook.service.util.BookImportUtils.jsonPath;
+import static com.adventurebook.service.util.BookImportUtils.validateGraph;
 
 @Service
 @RequiredArgsConstructor
@@ -25,6 +37,87 @@ public class BookImportServiceImpl implements BookImportService {
 
     private final JsonMapper mapper;
     private final Validator validator;
+    private final BookRepository books;
+    private final BookSectionRepository sections;
+    private final BookOptionRepository options;
+
+    @Override
+    @Transactional
+    public BookImportResultDTO importBook(String sourceFilename, byte[] content) {
+        String hash = content == null ? null : contentHash(content);
+
+        if (sourceFilename == null || sourceFilename.isBlank() || sourceFilename.length() > 255) {
+            return new BookImportResultDTO(BookImportStatus.REJECTED, null, hash,
+                    List.of(new BookValidationError("$.sourceFilename",
+                            "Source filename must be non-blank and at most 255 characters")));
+        }
+
+        try {
+            return books.findByContentHash(hash)
+                    .map(this::duplicate)
+                    .orElseGet(() -> persist(parse(content), sourceFilename, hash));
+        } catch (InvalidBookException exception) {
+            return new BookImportResultDTO(BookImportStatus.REJECTED, null, hash, exception.getErrors());
+        }
+    }
+
+    private BookImportResultDTO persist(BookImportDTO source, String filename, String hash) {
+        Book book = saveBook(source, filename, hash);
+        Map<String, BookSection> sectionsById = saveSections(source, book);
+        saveOptions(source, sectionsById);
+        return new BookImportResultDTO(BookImportStatus.IMPORTED, book.getId(), hash, List.of());
+    }
+
+    private Book saveBook(BookImportDTO source, String filename, String hash) {
+        return books.save(Book.builder()
+                .title(source.title())
+                .author(source.author())
+                .difficulty(source.difficulty())
+                .sourceFilename(filename)
+                .contentHash(hash).build());
+    }
+
+    private Map<String, BookSection> saveSections(BookImportDTO source, Book book) {
+        Map<String, BookSection> sectionsById = new HashMap<>();
+        for (BookImportDTO.Section sourceSection : source.sections()) {
+            BookSection section = sections.save(BookSection.builder()
+                    .book(book)
+                    .sectionKey(sourceSection.id())
+                    .text(sourceSection.text())
+                    .type(sourceSection.type()).build());
+
+            sectionsById.put(sourceSection.id(), section);
+        }
+        return sectionsById;
+    }
+
+    private void saveOptions(BookImportDTO source, Map<String, BookSection> sectionsById) {
+        List<BookOption> bookOptions = new ArrayList<>();
+        for (BookImportDTO.Section sourceSection : source.sections()) {
+            if (sourceSection.options() == null) {
+                continue;
+            }
+
+            for (int position = 0; position < sourceSection.options().size(); position++) {
+                BookImportDTO.Option sourceOption = sourceSection.options().get(position);
+                BookImportDTO.Consequence consequence = sourceOption.consequence();
+                bookOptions.add(BookOption.builder()
+                        .section(sectionsById.get(sourceSection.id()))
+                        .position(position)
+                        .description(sourceOption.description())
+                        .destination(sectionsById.get(sourceOption.gotoId()))
+                        .consequenceType(consequence == null ? null : consequence.type())
+                        .consequenceValue(consequence == null ? null : consequence.value())
+                        .consequenceText(consequence == null ? null : consequence.text()).build());
+            }
+        }
+
+        options.saveAll(bookOptions);
+    }
+
+    private BookImportResultDTO duplicate(Book book) {
+        return new BookImportResultDTO(BookImportStatus.DUPLICATE, book.getId(), book.getContentHash(), List.of());
+    }
 
     @Override
     public BookImportDTO parse(byte[] content) {
@@ -56,65 +149,10 @@ public class BookImportServiceImpl implements BookImportService {
         validator.validate(book).forEach(violation -> errors.add(new BookValidationError(
                 "$." + violation.getPropertyPath(), violation.getMessage())));
         if (book.sections() != null) {
-            validateGraph(book.sections(), errors);
+            errors.addAll(validateGraph(book.sections()));
         }
         return errors.stream().sorted(Comparator.comparing(BookValidationError::path)
                 .thenComparing(BookValidationError::message)).toList();
     }
 
-    private void validateGraph(List<BookImportDTO.Section> sections, List<BookValidationError> errors) {
-        Set<String> identifiers = new HashSet<>();
-        int beginnings = 0;
-        int endings = 0;
-        for (int i = 0; i < sections.size(); i++) {
-            BookImportDTO.Section section = sections.get(i);
-            if (section == null) {
-                continue;
-            }
-            if (section.id() != null && !identifiers.add(section.id())) {
-                errors.add(new BookValidationError("$.sections[" + i + "].id",
-                        "Duplicate section identifier: " + section.id()));
-            }
-            if (section.type() == SectionType.BEGIN) {
-                beginnings++;
-            }
-            if (section.type() == SectionType.END) {
-                endings++;
-            } else if (section.type() != null && (section.options() == null || section.options().isEmpty())) {
-                errors.add(new BookValidationError("$.sections[" + i + "].options",
-                        "Non-ending section must have at least one option"));
-            }
-        }
-        if (beginnings != 1) {
-            errors.add(new BookValidationError("$.sections", "Book must have exactly one beginning; found " + beginnings));
-        }
-        if (endings == 0) {
-            errors.add(new BookValidationError("$.sections", "Book must have at least one ending"));
-        }
-        for (int i = 0; i < sections.size(); i++) {
-            BookImportDTO.Section section = sections.get(i);
-            if (section == null || section.options() == null) {
-                continue;
-            }
-            for (int j = 0; j < section.options().size(); j++) {
-                BookImportDTO.Option option = section.options().get(j);
-                if (option != null && option.gotoId() != null && !identifiers.contains(option.gotoId())) {
-                    errors.add(new BookValidationError("$.sections[" + i + "].options[" + j + "].gotoId",
-                            "Destination section does not exist: " + option.gotoId()));
-                }
-            }
-        }
-    }
-
-    private String jsonPath(JacksonException exception) {
-        StringBuilder path = new StringBuilder("$");
-        for (JacksonException.Reference reference : exception.getPath()) {
-            if (reference.getPropertyName() != null) {
-                path.append('.').append(reference.getPropertyName());
-            } else if (reference.getIndex() >= 0) {
-                path.append('[').append(reference.getIndex()).append(']');
-            }
-        }
-        return path.toString();
-    }
 }
