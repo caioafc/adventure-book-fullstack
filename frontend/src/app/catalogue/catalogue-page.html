@@ -1,0 +1,74 @@
+@let state = catalogue.state();
+
+<section class="catalogue-hero" aria-labelledby="catalogue-title">
+  <div class="hero-copy">
+    <h1 id="catalogue-title">
+      <span class="hero-decoration" aria-hidden="true">✨</span>
+      Adventure Awaits
+      <span class="hero-decoration" aria-hidden="true">✨</span>
+    </h1>
+    <p class="hero-description">
+      Embark on epic quests where every choice shapes your destiny. Explore mystical realms, solve
+      ancient mysteries, and become the hero of your own story.
+    </p>
+    @if (state.nextPage > 0) {
+      <p class="available-count" role="status">
+        {{ state.totalElements }} Epic Adventures Available
+      </p>
+    }
+  </div>
+</section>
+
+<section class="library" aria-labelledby="library-title">
+  <div class="library-heading">
+    <h2 id="library-title"><span aria-hidden="true">📚</span> The Adventure Library</h2>
+    <p class="library-description">
+      Choose your next adventure from our collection of interactive tales. Each book offers unique
+      paths and multiple endings on your choices.
+    </p>
+  </div>
+
+  @if (state.books.length > 0) {
+    <ul class="book-grid">
+      @for (book of state.books; track book.id) {
+        <li>
+          <article class="book-card">
+            <span
+              class="difficulty"
+              [class.difficulty-medium]="book.difficulty === 'MEDIUM'"
+              [class.difficulty-hard]="book.difficulty === 'HARD'"
+            >
+              {{ book.difficulty | titlecase }}
+            </span>
+            <h3>{{ book.title }}</h3>
+            <p class="author">by {{ book.author }}</p>
+            <button type="button" class="begin-button" disabled>Begin quest</button>
+          </article>
+        </li>
+      }
+    </ul>
+    <p class="result-count" role="status">
+      Showing {{ state.books.length }} of {{ state.totalElements }} adventures
+    </p>
+  }
+
+  @if (state.error) {
+    <div class="feedback error-message" role="alert">
+      <p>{{ state.error }}</p>
+      <button type="button" (click)="catalogue.loadNextPage()">Retry</button>
+    </div>
+  } @else if (state.loading && state.books.length === 0) {
+    <p class="feedback" role="status">Loading adventures…</p>
+  } @else if (state.last && state.books.length === 0) {
+    <div class="feedback">
+      <h3>No adventures yet</h3>
+      <p>Add a book to the inbox to get started.</p>
+    </div>
+  } @else if (state.books.length > 0 && !state.last) {
+    <div class="catalogue-actions">
+      <button type="button" [disabled]="state.loading" (click)="catalogue.loadNextPage()">
+        {{ state.loading ? 'Loading…' : 'Load more' }}
+      </button>
+    </div>
+  }
+</section>

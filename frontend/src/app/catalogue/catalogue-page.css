@@ -1,0 +1,224 @@
+:host {
+  display: block;
+}
+
+.catalogue-hero {
+  display: grid;
+  place-items: center;
+  min-height: clamp(20rem, 28vw, 25rem);
+  padding: clamp(2.75rem, 7vw, 5rem) clamp(1rem, 5vw, 3rem);
+  box-sizing: border-box;
+  text-align: center;
+  color: #f8f4e7;
+  background:
+    linear-gradient(180deg, #30231bbd, #30231ba6 52%, #30231bd9),
+    url('/catalogue-hero.jpg') center / cover no-repeat #3c2d24;
+}
+
+.hero-copy {
+  max-width: 60rem;
+}
+
+.catalogue-hero h1,
+.library h2,
+.book-card h3 {
+  font-family: "Cormorant Garamond", Georgia, serif;
+}
+
+.catalogue-hero h1 {
+  margin: 0;
+  color: #f4cf80;
+  font-size: clamp(2.6rem, 6vw, 4.8rem);
+  line-height: 1;
+  letter-spacing: -0.04em;
+}
+
+.hero-decoration {
+  font-size: 0.65em;
+  vertical-align: 0.12em;
+}
+
+.hero-description {
+  max-width: 54rem;
+  margin: 1.2rem auto 0;
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: clamp(1.05rem, 2vw, 1.35rem);
+  line-height: 1.5;
+}
+
+.available-count {
+  margin: 1.65rem 0 0;
+  color: #f8e2af;
+  font-weight: 650;
+}
+
+.library {
+  max-width: 72rem;
+  margin-inline: auto;
+  padding: clamp(2.25rem, 5vw, 3.75rem) clamp(1rem, 4vw, 2rem) 3rem;
+}
+
+.library-heading {
+  margin-block-end: 2rem;
+  text-align: center;
+}
+
+.library h2 {
+  margin: 0;
+  font-size: clamp(1.65rem, 4vw, 2.25rem);
+  line-height: 1.15;
+}
+
+.library-description {
+  max-width: 44rem;
+  margin: 0.8rem auto 0;
+  color: #60564c;
+  font-size: clamp(0.95rem, 2vw, 1.075rem);
+  line-height: 1.6;
+}
+
+.result-count,
+.author {
+  color: #526258;
+}
+
+.result-count {
+  margin: 1rem 0 0;
+  font-size: 0.875rem;
+  text-align: center;
+}
+
+.book-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.book-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  min-height: 13rem;
+  height: 100%;
+  box-sizing: border-box;
+  padding: 1.25rem;
+  border: 1px solid #dcd8c8;
+  border-radius: 0.75rem;
+  background: #fffefa;
+  box-shadow: 0 2px 6px #28352908;
+}
+
+.book-card h3 {
+  margin: 0.75rem 0 0;
+  font-size: 1.4rem;
+  line-height: 1.18;
+  overflow-wrap: anywhere;
+}
+
+.author {
+  margin: 0.45rem 0 1.15rem;
+  font-size: 0.9rem;
+  overflow-wrap: anywhere;
+}
+
+.difficulty {
+  border-radius: 1rem;
+  padding: 0.2rem 0.65rem;
+  background: #e5f1e7;
+  color: #2d563b;
+  font-size: 0.75rem;
+  font-weight: 650;
+}
+
+.difficulty-medium {
+  background: #f6ead0;
+  color: #6b4a1d;
+}
+
+.difficulty-hard {
+  background: #f6e3e0;
+  color: #813e32;
+}
+
+button {
+  border: 1px solid #2c4b3d;
+  border-radius: 0.45rem;
+  padding: 0.65rem 1rem;
+  background: #2c4b3d;
+  color: #fff;
+  font: inherit;
+  font-weight: 650;
+  cursor: pointer;
+}
+
+button:hover:not(:disabled) {
+  background: #20382d;
+}
+
+button:focus-visible {
+  outline: 2px solid #2c4b3d;
+  outline-offset: 3px;
+}
+
+button:disabled {
+  cursor: default;
+  opacity: 0.72;
+}
+
+.begin-button {
+  width: 100%;
+  margin-block-start: auto;
+  border-color: #d7c59b;
+  background: #efe5cb;
+  color: #4f432d;
+}
+
+.catalogue-actions,
+.feedback {
+  margin-block-start: 1.25rem;
+  text-align: center;
+}
+
+.feedback {
+  padding: 1rem;
+  border: 1px solid #dcd8c8;
+  border-radius: 0.75rem;
+  background: #fffefa;
+}
+
+.feedback h3,
+.feedback p {
+  margin: 0;
+}
+
+.feedback h3 + p,
+.feedback button {
+  margin-block-start: 0.65rem;
+}
+
+.error-message {
+  color: #813e32;
+}
+
+@media (max-width: 52rem) {
+  .book-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 35rem) {
+  .catalogue-hero {
+    background-position: center, 62% center;
+  }
+
+  .hero-decoration {
+    display: none;
+  }
+
+  .book-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

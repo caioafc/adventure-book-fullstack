@@ -1,7 +1,18 @@
-import { Component } from '@angular/core';
+import { TitleCasePipe } from '@angular/common';
+import { Component, OnInit, inject } from '@angular/core';
+
+import { CatalogueStore } from './catalogue-store';
 
 @Component({
   selector: 'app-catalogue-page',
-  template: '<h1>Catalogue</h1>',
+  imports: [TitleCasePipe],
+  templateUrl: './catalogue-page.html',
+  styleUrl: './catalogue-page.css',
 })
-export class CataloguePage {}
+export class CataloguePage implements OnInit {
+  protected readonly catalogue = inject(CatalogueStore);
+
+  ngOnInit(): void {
+    this.catalogue.ensureLoaded();
+  }
+}
