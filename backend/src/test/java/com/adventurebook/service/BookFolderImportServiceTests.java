@@ -43,9 +43,9 @@ class BookFolderImportServiceTests {
 
     private static final String VALID = """
             {"title":"The Door","author":"Alex","difficulty":"EASY","sections":[
-              {"id":"start","text":"A door","type":"BEGIN","options":[
-                {"description":"Leave","gotoId":"end"}]},
-              {"id":"end","text":"Free","type":"END"}]}
+              {"id":1,"text":"A door","type":"BEGIN","options":[
+                {"description":"Leave","gotoId":"2"}]},
+              {"id":2,"text":"Free","type":"END"}]}
             """;
 
     @TempDir

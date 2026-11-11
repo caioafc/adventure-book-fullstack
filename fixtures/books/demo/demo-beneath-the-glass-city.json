@@ -4,13 +4,13 @@
   "difficulty": "MEDIUM",
   "sections": [
     {
-      "id": "market",
+      "id": 1,
       "text": "Cracks are spreading through the glass city. Beneath the market, an old service tunnel may lead to the foundation controls.",
       "type": "BEGIN",
       "options": [
         {
           "description": "Enter the service tunnel",
-          "gotoId": "tunnel",
+          "gotoId": 3,
           "consequence": {
             "type": "LOSE_HEALTH",
             "value": "2",
@@ -19,18 +19,18 @@
         },
         {
           "description": "Visit the glassworker's workshop",
-          "gotoId": "workshop"
+          "gotoId": 2
         }
       ]
     },
     {
-      "id": "workshop",
+      "id": 2,
       "text": "The glassworker binds your cuts and explains the city's oldest repair technique. A public terrace offers a safe place to wait.",
       "type": "NODE",
       "options": [
         {
           "description": "Take the bandages and enter the tunnel",
-          "gotoId": "tunnel",
+          "gotoId": 3,
           "consequence": {
             "type": "GAIN_HEALTH",
             "value": 3,
@@ -39,18 +39,18 @@
         },
         {
           "description": "Help people gather on the terrace",
-          "gotoId": "terrace"
+          "gotoId": 5
         }
       ]
     },
     {
-      "id": "tunnel",
+      "id": 3,
       "text": "A fallen support blocks the route to the control vault. The market stair remains open behind you.",
       "type": "NODE",
       "options": [
         {
           "description": "Squeeze beneath the fallen support",
-          "gotoId": "vault",
+          "gotoId": 4,
           "consequence": {
             "type": "LOSE_HEALTH",
             "value": 5,
@@ -59,22 +59,22 @@
         },
         {
           "description": "Return to the market",
-          "gotoId": "market"
+          "gotoId": 1
         }
       ]
     },
     {
-      "id": "vault",
+      "id": 4,
       "text": "Two controls remain intact. One stabilizes the supports slowly; the other releases pressure through a damaged emergency hatch.",
       "type": "NODE",
       "options": [
         {
           "description": "Stabilize the supports carefully",
-          "gotoId": "terrace"
+          "gotoId": 5
         },
         {
           "description": "Force the emergency hatch open",
-          "gotoId": "sunrise",
+          "gotoId": 6,
           "consequence": {
             "type": "LOSE_HEALTH",
             "value": 4,
@@ -84,12 +84,12 @@
       ]
     },
     {
-      "id": "terrace",
+      "id": 5,
       "text": "From the terrace, you watch the city settle. Neighbors begin replacing the damaged panes together.",
       "type": "END"
     },
     {
-      "id": "sunrise",
+      "id": 6,
       "text": "Pressure escapes into the dawn air. Sunlight reaches the foundation for the first time in a century.",
       "type": "END"
     }

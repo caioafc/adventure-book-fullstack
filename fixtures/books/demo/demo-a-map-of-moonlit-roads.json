@@ -4,13 +4,13 @@
   "difficulty": "EASY",
   "sections": [
     {
-      "id": "crossroads",
+      "id": 1,
       "text": "Your map reveals roads only under moonlight. Tonight, one silver line crosses a bridge and another winds through an orchard.",
       "type": "BEGIN",
       "options": [
         {
           "description": "Cross the old bridge",
-          "gotoId": "bridge",
+          "gotoId": 2,
           "consequence": {
             "type": "LOSE_HEALTH",
             "value": 2,
@@ -19,33 +19,33 @@
         },
         {
           "description": "Follow the orchard road",
-          "gotoId": "orchard"
+          "gotoId": 3
         }
       ]
     },
     {
-      "id": "bridge",
+      "id": 2,
       "text": "From the bridge, you see a sleeping town and a field of falling stars. A path beside the river reaches the orchard.",
       "type": "NODE",
       "options": [
         {
           "description": "Continue to the town",
-          "gotoId": "town"
+          "gotoId": 4
         },
         {
           "description": "Take the riverside path",
-          "gotoId": "orchard"
+          "gotoId": 3
         }
       ]
     },
     {
-      "id": "orchard",
+      "id": 3,
       "text": "The orchard keeper offers you an apple and points out two roads: one toward warm windows, the other toward the stars.",
       "type": "NODE",
       "options": [
         {
           "description": "Eat the apple and travel to town",
-          "gotoId": "town",
+          "gotoId": 4,
           "consequence": {
             "type": "GAIN_HEALTH",
             "value": "2",
@@ -54,17 +54,17 @@
         },
         {
           "description": "Walk toward the falling stars",
-          "gotoId": "stars"
+          "gotoId": 5
         }
       ]
     },
     {
-      "id": "town",
+      "id": 4,
       "text": "You arrive as the town wakes. Your map gains a new silver line leading to a welcoming inn.",
       "type": "END"
     },
     {
-      "id": "stars",
+      "id": 5,
       "text": "The stars land as harmless sparks in the grass. You sketch their pattern and discover a road that no map has shown before.",
       "type": "END"
     }

@@ -10,7 +10,7 @@
       "options": [
         {
           "description": "Climb the rocky ridge",
-          "gotoId": "ridge",
+          "gotoId": 2,
           "consequence": {
             "type": "LOSE_HEALTH",
             "value": 3,
@@ -19,7 +19,7 @@
         },
         {
           "description": "Lead the caravan toward the well",
-          "gotoId": "well",
+          "gotoId": 3,
           "consequence": {
             "type": "GAIN_HEALTH",
             "value": 2,
@@ -29,13 +29,13 @@
       ]
     },
     {
-      "id": "ridge",
+      "id": 2,
       "text": "You spot an oasis beyond a steep descent. The caravan's old camp lies in the opposite direction.",
       "type": "NODE",
       "options": [
         {
           "description": "Descend toward the oasis",
-          "gotoId": "oasis",
+          "gotoId": 4,
           "consequence": {
             "type": "LOSE_HEALTH",
             "value": "4",
@@ -44,18 +44,18 @@
         },
         {
           "description": "Return to the old camp",
-          "gotoId": "camp"
+          "gotoId": 6
         }
       ]
     },
     {
-      "id": "well",
+      "id": 3,
       "text": "Beside the well, a traveler has drawn a route to the oasis. The dunes behind you lead back to the starting point.",
       "type": "NODE",
       "options": [
         {
           "description": "Follow the traveler's route",
-          "gotoId": "oasis"
+          "gotoId": 4
         },
         {
           "description": "Reconsider the route at the dunes",
@@ -64,17 +64,17 @@
       ]
     },
     {
-      "id": "oasis",
+      "id": 4,
       "text": "The oasis keeper points toward the city gates. A tempting shortcut crosses a salt flat with a fragile surface.",
       "type": "NODE",
       "options": [
         {
           "description": "Take the marked road to the city",
-          "gotoId": "city"
+          "gotoId": 5
         },
         {
           "description": "Try the salt-flat shortcut",
-          "gotoId": "camp",
+          "gotoId": 6,
           "consequence": {
             "type": "LOSE_HEALTH",
             "value": 6,
@@ -84,12 +84,12 @@
       ]
     },
     {
-      "id": "city",
+      "id": 5,
       "text": "The caravan reaches the city before the market closes. Saffron merchants greet you beneath bright awnings.",
       "type": "END"
     },
     {
-      "id": "camp",
+      "id": 6,
       "text": "You find shelter at the caravan camp and mark the dangerous route for the next crossing.",
       "type": "END"
     }

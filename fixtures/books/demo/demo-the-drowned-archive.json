@@ -4,13 +4,13 @@
   "difficulty": "HARD",
   "sections": [
     {
-      "id": "quay",
+      "id": 1,
       "text": "The tide is rising through an abandoned archive. Its final catalogue may hold the names of a town lost beneath the sea.",
       "type": "BEGIN",
       "options": [
         {
           "description": "Wade directly into the flooded stacks",
-          "gotoId": "stacks",
+          "gotoId": 3,
           "consequence": {
             "type": "LOSE_HEALTH",
             "value": 3,
@@ -19,33 +19,33 @@
         },
         {
           "description": "Look for a skiff along the quay",
-          "gotoId": "skiff"
+          "gotoId": 2
         }
       ]
     },
     {
-      "id": "skiff",
+      "id": 2,
       "text": "A skiff floats beside a sheltered entrance. The harbor road remains clear if you decide to abandon the search.",
       "type": "NODE",
       "options": [
         {
           "description": "Row to the sheltered entrance",
-          "gotoId": "stacks"
+          "gotoId": 3
         },
         {
           "description": "Return along the harbor road",
-          "gotoId": "home"
+          "gotoId": 8
         }
       ]
     },
     {
-      "id": "stacks",
+      "id": 3,
       "text": "Loose shelves form a narrow bridge to the catalogue room. Behind you, the quay is still visible through the entrance.",
       "type": "NODE",
       "options": [
         {
           "description": "Cross the shelves to the catalogue",
-          "gotoId": "index",
+          "gotoId": 4,
           "consequence": {
             "type": "LOSE_HEALTH",
             "value": "4",
@@ -54,18 +54,18 @@
         },
         {
           "description": "Retreat to the quay",
-          "gotoId": "quay"
+          "gotoId": 1
         }
       ]
     },
     {
-      "id": "index",
+      "id": 4,
       "text": "The catalogue points toward a dry bell chamber and a submerged vault. A rescue kit hangs near the chamber door.",
       "type": "NODE",
       "options": [
         {
           "description": "Take the rescue kit into the bell chamber",
-          "gotoId": "bell",
+          "gotoId": 5,
           "consequence": {
             "type": "GAIN_HEALTH",
             "value": 2,
@@ -74,7 +74,7 @@
         },
         {
           "description": "Dive straight into the submerged vault",
-          "gotoId": "deep",
+          "gotoId": 6,
           "consequence": {
             "type": "LOSE_HEALTH",
             "value": 5,
@@ -84,17 +84,17 @@
       ]
     },
     {
-      "id": "bell",
+      "id": 5,
       "text": "A sealed copy of the catalogue rests beside the bell. A lower stair leads toward the original records.",
       "type": "NODE",
       "options": [
         {
           "description": "Carry the sealed catalogue to safety",
-          "gotoId": "saved"
+          "gotoId": 7
         },
         {
           "description": "Descend toward the original records",
-          "gotoId": "deep",
+          "gotoId": 6,
           "consequence": {
             "type": "LOSE_HEALTH",
             "value": 2,
@@ -104,13 +104,13 @@
       ]
     },
     {
-      "id": "deep",
+      "id": 6,
       "text": "Water presses against the vault door. A damaged return channel leads back toward the harbor.",
       "type": "NODE",
       "options": [
         {
           "description": "Force the vault door and retrieve the records",
-          "gotoId": "saved",
+          "gotoId": 7,
           "consequence": {
             "type": "LOSE_HEALTH",
             "value": 6,
@@ -119,17 +119,17 @@
         },
         {
           "description": "Escape through the return channel",
-          "gotoId": "home"
+          "gotoId": 8
         }
       ]
     },
     {
-      "id": "saved",
+      "id": 7,
       "text": "The archive's names return to the town registry. Families gather to read the stories that the tide almost erased.",
       "type": "END"
     },
     {
-      "id": "home",
+      "id": 8,
       "text": "You reach the harbor and warn the archivists about the rising water. They begin planning a safer expedition.",
       "type": "END"
     }

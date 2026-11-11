@@ -38,14 +38,14 @@ class BookIngestionTests {
     private static final String VALID = """
             {"title":"The Cave","author":"Alex","difficulty":"MEDIUM","sections":[
               {"id":1,"text":"At the entrance","type":"BEGIN","options":[
-                {"description":"Explore","gotoId":"cave","consequence":{
+                {"description":"Explore","gotoId":"2","consequence":{
                   "type":"LOSE_HEALTH","value":"3","text":"A scratch"}},
-                {"description":"Leave","gotoId":"exit"}]},
-              {"id":"cave","text":"Deep inside","type":"NODE","options":[
-                {"description":"Rest and leave","gotoId":"exit","consequence":{
+                {"description":"Leave","gotoId":3}]},
+              {"id":2,"text":"Deep inside","type":"NODE","options":[
+                {"description":"Rest and leave","gotoId":3,"consequence":{
                   "type":"GAIN_HEALTH","value":2,"text":"Feeling better"}},
                 {"description":"Return","gotoId":1}]},
-              {"id":"exit","text":"Free","type":"END"}]}
+              {"id":3,"text":"Free","type":"END"}]}
             """;
 
     @Autowired
@@ -89,12 +89,12 @@ class BookIngestionTests {
         var beginning = sections.findByBookIdAndSectionKey(book.getId(), "1").orElseThrow();
         List<BookOption> choices = options.findAllBySectionIdOrderByPositionAsc(beginning.getId());
         assertThat(choices).extracting(BookOption::getDescription).containsExactly("Explore", "Leave");
-        assertThat(choices.getFirst().getDestination().getSectionKey()).isEqualTo("cave");
+        assertThat(choices.getFirst().getDestination().getSectionKey()).isEqualTo("2");
         assertThat(choices.getFirst().getConsequenceType()).isEqualTo(ConsequenceType.LOSE_HEALTH);
         assertThat(choices.getFirst().getConsequenceValue()).isEqualTo(3);
         assertThat(choices.getFirst().getConsequenceText()).isEqualTo("A scratch");
         assertThat(choices.get(1).getConsequenceType()).isNull();
-        var cave = sections.findByBookIdAndSectionKey(book.getId(), "cave").orElseThrow();
+        var cave = sections.findByBookIdAndSectionKey(book.getId(), "2").orElseThrow();
         List<BookOption> caveChoices = options.findAllBySectionIdOrderByPositionAsc(cave.getId());
         assertThat(caveChoices.getFirst().getConsequenceType()).isEqualTo(ConsequenceType.GAIN_HEALTH);
         assertThat(caveChoices.get(1).getDestination().getId()).isEqualTo(beginning.getId());

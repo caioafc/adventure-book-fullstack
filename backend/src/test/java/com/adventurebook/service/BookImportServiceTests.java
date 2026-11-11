@@ -48,16 +48,6 @@ class BookImportServiceTests {
     }
 
     @Test
-    void acceptsArbitraryStringIdsWithoutNumericFormatting() {
-        BookImportDTO book = parse(VALID.replace("\"id\":1", "\"id\":\"entrance-alpha\"")
-                .replace("\"id\":\"500\"", "\"id\":\"escape-door\"")
-                .replace("\"gotoId\":500", "\"gotoId\":\"escape-door\""));
-
-        assertThat(book.sections().getFirst().id()).isEqualTo("entrance-alpha");
-        assertThat(book.sections().getFirst().options().getFirst().gotoId()).isEqualTo("escape-door");
-    }
-
-    @Test
     void preservesNumericIdsLargerThanTheLongRange() {
         String largeId = "999999999999999999999999999999";
         BookImportDTO book = parse(VALID.replace("\"id\":1", "\"id\":" + largeId));
@@ -77,13 +67,13 @@ class BookImportServiceTests {
         BookImportDTO book = parse("""
                 {"title":"Paths","author":"Alex","difficulty":"EASY","extra":"ignored",
                  "sections":[
-                   {"id":"start","text":"Start","type":"BEGIN","extra":42,"options":[
-                     {"description":"Loop","gotoId":"start","extra":true},
-                     {"description":"Leave","gotoId":"end"}]},
-                   {"id":"end","text":"Done","type":"END","options":[]},
-                   {"id":"other-end","text":"Another ending","type":"END"},
-                   {"id":"island","text":"Unreachable","type":"NODE","options":[
-                     {"description":"Stay","gotoId":"island"}]}]}
+                   {"id":"1","text":"Start","type":"BEGIN","extra":42,"options":[
+                     {"description":"Loop","gotoId":1,"extra":true},
+                     {"description":"Leave","gotoId":"2"}]},
+                   {"id":2,"text":"Done","type":"END","options":[]},
+                   {"id":3,"text":"Another ending","type":"END"},
+                   {"id":4,"text":"Unreachable","type":"NODE","options":[
+                     {"description":"Stay","gotoId":4}]}]}
                 """);
 
         assertThat(book.sections()).hasSize(4);
@@ -137,9 +127,10 @@ class BookImportServiceTests {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"true", "{}", "[]"})
-    void rejectsNonStringNonNumericIds(String id) {
-        assertRejected(VALID.replace("\"id\":1", "\"id\":" + id), "identifiers");
+    @ValueSource(strings = {"\"forest\"", "\"1/2\"", "-1", "1.5", "\"1.5\"", "1e2", "true", "{}", "[]"})
+    void rejectsIdsAndDestinationsThatAreNotNonNegativeIntegers(String id) {
+        assertRejected(VALID.replace("\"id\":1", "\"id\":" + id), ".id");
+        assertRejected(VALID.replace("\"gotoId\":500", "\"gotoId\":" + id), ".gotoId");
     }
 
     @ParameterizedTest

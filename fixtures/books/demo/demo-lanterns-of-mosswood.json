@@ -4,13 +4,13 @@
   "difficulty": "EASY",
   "sections": [
     {
-      "id": "trail",
+      "id": 1,
       "text": "The village lanterns have vanished into Mosswood. A ribbon of green light leads between the trees, while smoke rises from a nearby camp.",
       "type": "BEGIN",
       "options": [
         {
           "description": "Follow the light to the brook",
-          "gotoId": "brook",
+          "gotoId": 2,
           "consequence": {
             "type": "LOSE_HEALTH",
             "value": "2",
@@ -19,18 +19,18 @@
         },
         {
           "description": "Visit the camp first",
-          "gotoId": "camp"
+          "gotoId": 3
         }
       ]
     },
     {
-      "id": "brook",
+      "id": 2,
       "text": "Lanterns drift above a fast brook. Stepping stones lead toward a clearing, but a dry path returns to the camp.",
       "type": "NODE",
       "options": [
         {
           "description": "Cross the stepping stones",
-          "gotoId": "glade",
+          "gotoId": 4,
           "consequence": {
             "type": "LOSE_HEALTH",
             "value": 3,
@@ -39,18 +39,18 @@
         },
         {
           "description": "Take the dry path",
-          "gotoId": "camp"
+          "gotoId": 3
         }
       ]
     },
     {
-      "id": "camp",
+      "id": 3,
       "text": "An old woodkeeper offers warm soup. She says the lanterns gather where the moon touches the oldest roots.",
       "type": "NODE",
       "options": [
         {
           "description": "Rest, then seek the clearing",
-          "gotoId": "glade",
+          "gotoId": 4,
           "consequence": {
             "type": "GAIN_HEALTH",
             "value": 3,
@@ -59,33 +59,33 @@
         },
         {
           "description": "Return to the village trail",
-          "gotoId": "trail"
+          "gotoId": 1
         }
       ]
     },
     {
-      "id": "glade",
+      "id": 4,
       "text": "The missing lanterns circle a sleeping fox. A hollow beneath an ancient oak glows brighter than the rest.",
       "type": "NODE",
       "options": [
         {
           "description": "Guide the lanterns home gently",
-          "gotoId": "dawn"
+          "gotoId": 6
         },
         {
           "description": "Investigate the glowing hollow",
-          "gotoId": "roots"
+          "gotoId": 5
         }
       ]
     },
     {
-      "id": "roots",
+      "id": 5,
       "text": "The hollow opens onto a deep root shaft. A narrow ledge crosses it, while the trail home remains clear behind you.",
       "type": "NODE",
       "options": [
         {
           "description": "Leap across the shaft",
-          "gotoId": "dawn",
+          "gotoId": 6,
           "consequence": {
             "type": "LOSE_HEALTH",
             "value": 11,
@@ -94,17 +94,17 @@
         },
         {
           "description": "Leave the hollow and return safely",
-          "gotoId": "home"
+          "gotoId": 7
         }
       ]
     },
     {
-      "id": "dawn",
+      "id": 6,
       "text": "At dawn, the lanterns settle above the village square. Their keepers welcome you with a quiet festival.",
       "type": "END"
     },
     {
-      "id": "home",
+      "id": 7,
       "text": "You reach home before sunrise and mark the dangerous hollow on the woodkeeper's map.",
       "type": "END"
     }

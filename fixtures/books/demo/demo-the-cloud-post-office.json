@@ -4,17 +4,17 @@
   "difficulty": "EASY",
   "sections": [
     {
-      "id": "desk",
+      "id": 1,
       "text": "You have one letter left to deliver before the cloud post office closes. Its address reads: The Person Who Watches the Rain.",
       "type": "BEGIN",
       "options": [
         {
           "description": "Ask at the sorting desk",
-          "gotoId": "sorting"
+          "gotoId": 2
         },
         {
           "description": "Climb the outside stair",
-          "gotoId": "stair",
+          "gotoId": 3,
           "consequence": {
             "type": "LOSE_HEALTH",
             "value": 2,
@@ -24,28 +24,28 @@
       ]
     },
     {
-      "id": "sorting",
+      "id": 2,
       "text": "The sorter recognizes the handwriting. The recipient may be in the rain gallery, or on the roof measuring the weather.",
       "type": "NODE",
       "options": [
         {
           "description": "Visit the rain gallery",
-          "gotoId": "delivered"
+          "gotoId": 5
         },
         {
           "description": "Try the stair to the roof",
-          "gotoId": "stair"
+          "gotoId": 3
         }
       ]
     },
     {
-      "id": "stair",
+      "id": 3,
       "text": "The stair sways above the city. A warm doorway leads back inside, while a final ladder reaches the roof.",
       "type": "NODE",
       "options": [
         {
           "description": "Climb the ladder",
-          "gotoId": "rooftop",
+          "gotoId": 4,
           "consequence": {
             "type": "LOSE_HEALTH",
             "value": "3",
@@ -54,7 +54,7 @@
         },
         {
           "description": "Warm up inside and return to the desk",
-          "gotoId": "desk",
+          "gotoId": 1,
           "consequence": {
             "type": "GAIN_HEALTH",
             "value": 2,
@@ -64,27 +64,27 @@
       ]
     },
     {
-      "id": "rooftop",
+      "id": 4,
       "text": "A weather watcher waits beside a brass telescope. Below, the last mail balloon is preparing to depart.",
       "type": "NODE",
       "options": [
         {
           "description": "Hand the letter to the watcher",
-          "gotoId": "delivered"
+          "gotoId": 5
         },
         {
           "description": "Return the letter on the mail balloon",
-          "gotoId": "returned"
+          "gotoId": 6
         }
       ]
     },
     {
-      "id": "delivered",
+      "id": 5,
       "text": "The watcher reads the letter and smiles. For the first time all week, a small patch of blue opens above the city.",
       "type": "END"
     },
     {
-      "id": "returned",
+      "id": 6,
       "text": "The mail balloon carries the letter back to its sender. You leave a careful note explaining where the watcher can be found.",
       "type": "END"
     }
