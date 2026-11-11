@@ -1,0 +1,10 @@
+:root {
+  color-scheme: light;
+  font-family: system-ui, sans-serif;
+  color: #25332b;
+  background: #f8f7f2;
+}
+
+body {
+  margin: 0;
+}
