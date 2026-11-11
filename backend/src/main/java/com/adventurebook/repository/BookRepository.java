@@ -9,6 +9,4 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 public interface BookRepository extends JpaRepository<Book, Long>, JpaSpecificationExecutor<Book> {
 
     Optional<Book> findByContentHash(String contentHash);
-
-    boolean existsByContentHash(String contentHash);
 }

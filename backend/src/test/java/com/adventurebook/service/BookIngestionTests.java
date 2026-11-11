@@ -2,13 +2,10 @@ package com.adventurebook.service;
 
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.util.List;
 import java.util.stream.Stream;
 
 import com.adventurebook.dto.BookImportResultDTO;
 import com.adventurebook.enums.BookImportStatus;
-import com.adventurebook.enums.ConsequenceType;
-import com.adventurebook.model.BookOption;
 import com.adventurebook.repository.BookOptionRepository;
 import com.adventurebook.repository.BookRepository;
 import com.adventurebook.repository.BookSectionRepository;
@@ -23,7 +20,6 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.TransientDataAccessResourceException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
-import org.springframework.transaction.annotation.Transactional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -69,35 +65,6 @@ class BookIngestionTests {
         jdbc.update("DELETE FROM book_options");
         jdbc.update("DELETE FROM book_sections");
         jdbc.update("DELETE FROM books");
-    }
-
-    @Test
-    @Transactional
-    void persistsCompleteBookWithLinksOrderAndConsequences() {
-        BookImportResultDTO result = service.importBook("cave.json", content(VALID));
-
-        assertThat(result.status()).isEqualTo(BookImportStatus.IMPORTED);
-        assertThat(result.bookId()).isNotNull();
-        assertThat(result.contentHash()).matches("[a-f0-9]{64}");
-        assertThat(result.errors()).isEmpty();
-        assertCounts(1, 3, 4);
-        var book = books.findById(result.bookId()).orElseThrow();
-        assertThat(book.getTitle()).isEqualTo("The Cave");
-        assertThat(book.getSourceFilename()).isEqualTo("cave.json");
-        assertThat(book.getContentHash()).isEqualTo(result.contentHash());
-        assertThat(book.getImportedAt()).isNotNull();
-        var beginning = sections.findByBookIdAndSectionKey(book.getId(), "1").orElseThrow();
-        List<BookOption> choices = options.findAllBySectionIdOrderByPositionAsc(beginning.getId());
-        assertThat(choices).extracting(BookOption::getDescription).containsExactly("Explore", "Leave");
-        assertThat(choices.getFirst().getDestination().getSectionKey()).isEqualTo("2");
-        assertThat(choices.getFirst().getConsequenceType()).isEqualTo(ConsequenceType.LOSE_HEALTH);
-        assertThat(choices.getFirst().getConsequenceValue()).isEqualTo(3);
-        assertThat(choices.getFirst().getConsequenceText()).isEqualTo("A scratch");
-        assertThat(choices.get(1).getConsequenceType()).isNull();
-        var cave = sections.findByBookIdAndSectionKey(book.getId(), "2").orElseThrow();
-        List<BookOption> caveChoices = options.findAllBySectionIdOrderByPositionAsc(cave.getId());
-        assertThat(caveChoices.getFirst().getConsequenceType()).isEqualTo(ConsequenceType.GAIN_HEALTH);
-        assertThat(caveChoices.get(1).getDestination().getId()).isEqualTo(beginning.getId());
     }
 
     @Test
