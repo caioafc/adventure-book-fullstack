@@ -20,7 +20,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE,
         properties = "spring.datasource.url=jdbc:h2:mem:book-persistence;DB_CLOSE_DELAY=-1")
 @Transactional
-class BookRepositoryTests {
+class BookPersistenceTests {
 
     @Autowired
     private BookRepository books;

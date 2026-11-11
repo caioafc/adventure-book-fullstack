@@ -26,7 +26,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest(properties = "spring.datasource.url=jdbc:h2:mem:book-adventure;DB_CLOSE_DELAY=-1")
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-class BookAdventureControllerTests {
+class AdventureContentApiTests {
 
     private static final String STORY = """
             {
@@ -41,7 +41,9 @@ class BookAdventureControllerTests {
                       "type": "LOSE_HEALTH", "value": "3", "text": "You scrape your knee."
                     }},
                     {"description": "Leave", "gotoId": "42"},
-                    {"description": "Follow the path", "gotoId": 50}
+                    {"description": "Follow the path", "gotoId": 50, "consequence": {
+                      "type": "LOSE_HEALTH", "value": 12, "text": "A rockslide hits you."
+                    }}
                   ]
                 },
                 {
@@ -115,7 +117,10 @@ class BookAdventureControllerTests {
                 .andExpect(jsonPath("$.options[0].consequence.text").value("You scrape your knee."))
                 .andExpect(jsonPath("$.options[1].gotoId").value(endingId))
                 .andExpect(jsonPath("$.options[1].consequence").value(nullValue()))
-                .andExpect(jsonPath("$.options[2].gotoId").value(gardenId));
+                .andExpect(jsonPath("$.options[2].gotoId").value(gardenId))
+                .andExpect(jsonPath("$.options[2].consequence.type").value("LOSE_HEALTH"))
+                .andExpect(jsonPath("$.options[2].consequence.value").value(12))
+                .andExpect(jsonPath("$.options[2].consequence.text").value("A rockslide hits you."));
     }
 
     @Test
@@ -128,7 +133,8 @@ class BookAdventureControllerTests {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.options[0].gotoId").value(beginningId))
                 .andExpect(jsonPath("$.options[0].consequence.type").value("GAIN_HEALTH"))
-                .andExpect(jsonPath("$.options[0].consequence.value").value(2));
+                .andExpect(jsonPath("$.options[0].consequence.value").value(2))
+                .andExpect(jsonPath("$.options[0].consequence.text").value("You feel better."));
 
         mvc.perform(get("/api/books/{bookId}/sections/{sectionId}", bookId, beginningId))
                 .andExpect(status().isOk())
