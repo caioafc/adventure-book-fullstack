@@ -3,7 +3,9 @@ package com.adventurebook.controller;
 import com.adventurebook.dto.BookDetailsDTO;
 import com.adventurebook.dto.BookPageDTO;
 import com.adventurebook.dto.BookSectionDTO;
+import com.adventurebook.enums.ApiErrorCode;
 import com.adventurebook.enums.Difficulty;
+import com.adventurebook.exception.ApiException;
 import com.adventurebook.service.BookAdventureService;
 import com.adventurebook.service.BookCatalogueService;
 import jakarta.validation.constraints.Pattern;
@@ -17,7 +19,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.server.ResponseStatusException;
 
 @RestController
 @RequestMapping("/api/books")
@@ -47,7 +48,7 @@ public class BookController {
         try {
             id = Long.parseLong(sectionId);
         } catch (NumberFormatException exception) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Section ID is out of range", exception);
+            throw new ApiException(ApiErrorCode.INVALID_SECTION_ID, HttpStatus.BAD_REQUEST);
         }
         return adventure.getSection(bookId, id);
     }

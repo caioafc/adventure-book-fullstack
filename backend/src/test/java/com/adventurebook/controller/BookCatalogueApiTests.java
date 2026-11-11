@@ -163,7 +163,17 @@ class BookCatalogueApiTests {
     @Test
     void rejectsUnknownDifficultyValues() throws Exception {
         mvc.perform(get("/api/books").param("difficulty", "IMPOSSIBLE"))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("INVALID_DIFFICULTY"))
+                .andExpect(jsonPath("$.description").value("Difficulty must be EASY, MEDIUM, or HARD."));
+    }
+
+    @Test
+    void returnsAnErrorBodyForAnUnknownRoute() throws Exception {
+        mvc.perform(get("/api/books/1/unknown"))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.code").value("NOT_FOUND"))
+                .andExpect(jsonPath("$.description").value("Not Found."));
     }
 
     private Book saveBook(String title, String author, Difficulty difficulty) {

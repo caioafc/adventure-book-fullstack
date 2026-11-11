@@ -4,8 +4,9 @@ import java.util.List;
 
 import com.adventurebook.dto.BookDetailsDTO;
 import com.adventurebook.dto.BookSectionDTO;
+import com.adventurebook.enums.ApiErrorCode;
 import com.adventurebook.enums.SectionType;
-import com.adventurebook.exception.AdventureContentNotFoundException;
+import com.adventurebook.exception.ApiException;
 import com.adventurebook.model.Book;
 import com.adventurebook.model.BookOption;
 import com.adventurebook.model.BookSection;
@@ -15,6 +16,7 @@ import com.adventurebook.repository.BookSectionRepository;
 import com.adventurebook.repository.BookSectionRepository.SectionIdView;
 import com.adventurebook.service.BookAdventureService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -28,17 +30,17 @@ public class BookAdventureServiceImpl implements BookAdventureService {
     @Override
     public BookDetailsDTO getBook(long bookId) {
         Book book = books.findById(bookId)
-                .orElseThrow(() -> new AdventureContentNotFoundException("Book not found"));
+                .orElseThrow(() -> new ApiException(ApiErrorCode.BOOK_NOT_FOUND, HttpStatus.NOT_FOUND));
         Long beginning = sections.findByBookIdAndType(bookId, SectionType.BEGIN)
                 .map(SectionIdView::getId)
-                .orElseThrow(() -> new AdventureContentNotFoundException("Beginning section not found"));
+                .orElseThrow(() -> new ApiException(ApiErrorCode.BEGINNING_SECTION_NOT_FOUND, HttpStatus.NOT_FOUND));
         return new BookDetailsDTO(book.getId(), book.getTitle(), book.getAuthor(), book.getDifficulty(), beginning);
     }
 
     @Override
     public BookSectionDTO getSection(long bookId, long sectionId) {
         BookSection section = sections.findByBookIdAndId(bookId, sectionId)
-                .orElseThrow(() -> new AdventureContentNotFoundException("Section not found in this book"));
+                .orElseThrow(() -> new ApiException(ApiErrorCode.SECTION_NOT_FOUND, HttpStatus.NOT_FOUND));
         List<BookSectionDTO.Option> choices = options.findAllBySectionIdOrderByPositionAsc(section.getId())
                 .stream().map(this::toOption).toList();
         return new BookSectionDTO(section.getId(), section.getText(), section.getType(), choices);

@@ -158,26 +158,39 @@ class AdventureContentApiTests {
 
     @Test
     void returnsNotFoundForMissingBooksAndBookScopedSections() throws Exception {
-        mvc.perform(get("/api/books/{bookId}", Long.MAX_VALUE)).andExpect(status().isNotFound());
+        mvc.perform(get("/api/books/{bookId}", Long.MAX_VALUE))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.code").value("BOOK_NOT_FOUND"))
+                .andExpect(jsonPath("$.description").value("The requested book was not found."));
         mvc.perform(get("/api/books/{bookId}/sections/{sectionId}", Long.MAX_VALUE, beginningId))
-                .andExpect(status().isNotFound());
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.code").value("SECTION_NOT_FOUND"));
         mvc.perform(get("/api/books/{bookId}/sections/{sectionId}", otherBookId, loopId))
-                .andExpect(status().isNotFound());
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.code").value("SECTION_NOT_FOUND"))
+                .andExpect(jsonPath("$.description").value("The requested section was not found in this book."));
     }
 
     @ParameterizedTest
     @ValueSource(strings = {"not-an-id", "0", "-1"})
     void rejectsInvalidBookIds(String invalidId) throws Exception {
-        mvc.perform(get("/api/books/{bookId}", invalidId)).andExpect(status().isBadRequest());
+        mvc.perform(get("/api/books/{bookId}", invalidId))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("INVALID_BOOK_ID"))
+                .andExpect(jsonPath("$.description").value("Book ID must be a positive whole number."));
         mvc.perform(get("/api/books/{bookId}/sections/{sectionId}", invalidId, beginningId))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("INVALID_BOOK_ID"));
     }
 
     @ParameterizedTest
     @ValueSource(strings = {"forest", "0x1", "0", "-1", "1.5", "9223372036854775808"})
     void rejectsInvalidSectionIds(String invalidId) throws Exception {
         mvc.perform(get("/api/books/{bookId}/sections/{sectionId}", bookId, invalidId))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("INVALID_SECTION_ID"))
+                .andExpect(jsonPath("$.description")
+                        .value("Section ID must be a positive whole number within the supported range."));
     }
 
     @Test
