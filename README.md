@@ -54,7 +54,7 @@ The catalogue shows three books initially. With all ten demos imported, select *
 
 ### Play an adventure
 
-Choose **Begin quest** to start at the book's opening section. Choose an option to move through the story. You start with 10 health, and choices can add or remove health. A consequence notification shows the health change and what happened. Use **Show hint** to reveal the consequences for the choices on the current page. Each quest has three hints. The adventure ends when you reach an ending or run out of health.
+Choose **Begin quest** to start at the book's opening section. Choose an option to move through the story. You start with 10 health, and choices can add or remove health. The adventure ends when you reach an ending or run out of health.
 
 | Action | What it does |
 | --- | --- |
@@ -63,6 +63,12 @@ Choose **Begin quest** to start at the book's opening section. Choose an option 
 | **Stop** | Offers **Discard and stop** or **Cancel**. Discarding clears progress for this book and returns to the catalogue. |
 | **Save Progress** | Saves the current state and keeps the quest open. |
 | **Pause** | Asks for confirmation, then saves progress and returns to the catalogue. |
+
+### Test hints and health notifications
+
+Start a new quest in **Signal from Ember Station**. On the opening page, select **Show hint** to reveal the consequence text under the choices. Each quest has three hints. Revealing the text uses one hint and keeps it visible for that page visit. Health changes when you choose an option.
+
+Choose **Cross the damaged gantry**. Your health drops from 10 to 6, and a notification shows a red **−4 Health** badge above the message “A loose panel strikes your suit.” Healing shows a green badge with the amount restored. Select **×** to dismiss the notification.
 
 ### Resume a saved adventure
 
