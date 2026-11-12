@@ -9,8 +9,17 @@ section {
 }
 
 h2 {
-  margin: 0 0 1rem;
+  margin: 0;
   font-size: 1.25rem;
+}
+
+.choices-heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-block-end: 1rem;
 }
 
 ol {
@@ -42,6 +51,12 @@ button:hover:not(:disabled) {
   border-color: #c8aa76;
 }
 
+.hint-button {
+  width: auto;
+  padding: 0.35rem 0.65rem;
+  font-size: 0.9rem;
+}
+
 .choice-number {
   flex: none;
   min-width: 1.75rem;
@@ -53,4 +68,17 @@ button:hover:not(:disabled) {
   font-size: 0.875rem;
   font-weight: 700;
   text-align: center;
+}
+
+.choice-content {
+  display: grid;
+  justify-items: start;
+  gap: 0.35rem;
+  min-width: 0;
+}
+
+.choice-consequence {
+  color: #6e5b4c;
+  font-size: 0.9rem;
+  font-style: italic;
 }

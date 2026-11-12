@@ -230,6 +230,10 @@
   color: #4f432d;
 }
 
+.begin-button:hover:not(:disabled) {
+  color: #fff;
+}
+
 .catalogue-actions,
 .feedback {
   margin-block-start: 1.25rem;

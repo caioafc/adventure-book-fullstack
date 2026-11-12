@@ -5,15 +5,93 @@
     @let error = store.error();
     <div class="adventure-toolbar">
       <a routerLink="/">← Back to the library</a>
-      @if (game || store.savedProgress().has(id)) {
-        <button type="button" (click)="store.restart(id)">Restart</button>
+      @if (game || store.savedStatusByBook().has(id)) {
+        <div class="adventure-menu" role="group" aria-label="Adventure actions">
+          <button type="button" (click)="confirm(actionDialog, 'restart')">Restart</button>
+          <button type="button" (click)="confirm(actionDialog, 'stop')">Stop</button>
+          <button type="button" [disabled]="!game || loading" (click)="saveProgress()">
+            Save Progress
+          </button>
+          <button
+            type="button"
+            [disabled]="!game || loading"
+            (click)="confirm(actionDialog, 'pause')"
+          >
+            Pause
+          </button>
+        </div>
       }
     </div>
 
+    <dialog #actionDialog class="action-dialog" aria-labelledby="action-title">
+      <h2 id="action-title">
+        @switch (confirmation()) {
+          @case ('restart') {
+            Restart adventure?
+          }
+          @case ('stop') {
+            Stop adventure?
+          }
+          @case ('pause') {
+            Pause adventure?
+          }
+        }
+      </h2>
+      <p>
+        @switch (confirmation()) {
+          @case ('restart') {
+            Your progress for this book will reset.
+          }
+          @case ('stop') {
+            Discard this book’s progress and return to the library, or cancel to keep playing.
+          }
+          @case ('pause') {
+            Your progress will be saved before you return to the library.
+          }
+        }
+      </p>
+      <div class="dialog-actions">
+        @switch (confirmation()) {
+          @case ('restart') {
+            <button type="button" (click)="actionDialog.close(); store.restart(id)">
+              Restart adventure
+            </button>
+          }
+          @case ('stop') {
+            <button type="button" (click)="actionDialog.close(); stop(id)">Discard and stop</button>
+          }
+          @case ('pause') {
+            <button type="button" (click)="actionDialog.close(); saveAndLeave()">
+              Save and pause
+            </button>
+          }
+        }
+        <button type="button" autofocus (click)="actionDialog.close()">Cancel</button>
+      </div>
+    </dialog>
+
     <div class="story">
-      <h1 id="adventure-title">{{ game?.book?.title ?? 'Adventure' }}</h1>
+      <header class="story-heading">
+        <h1 id="adventure-title">{{ game?.book?.title ?? 'Adventure' }}</h1>
+        @if (game) {
+          <div class="health" role="status">
+            <label for="adventure-health"
+              >Health {{ game.progress.health }} / {{ maxHealth }}</label
+            >
+            <meter
+              id="adventure-health"
+              min="0"
+              [max]="maxHealth"
+              [value]="game.progress.health"
+            ></meter>
+          </div>
+        }
+      </header>
       @if (store.storageNotice(); as notice) {
         <p role="status">{{ notice }}</p>
+      }
+      @if (savedFeedback()) {
+        <p role="status">Progress saved.</p>
       }
 
       @if (error) {
@@ -28,15 +106,48 @@
       }
 
       @if (game) {
-        @if (game.progress.status === 'completed') {
-          <p class="ending-status"><span class="completed-badge">Completed</span></p>
+        <div class="outcome" aria-live="polite">
+          @if (game.progress.status === 'completed') {
+            <p class="ending-status"><span class="completed-badge">Completed</span></p>
+          } @else if (game.progress.status === 'dead') {
+            <h2 class="death-title">You died</h2>
+          }
+        </div>
+        @if (game.progress.consequenceMessage && !consequenceHidden()) {
+          <div class="consequence-notification">
+            <p role="status">
+              @let change = game.progress.consequenceHealthChange;
+              @if (change !== null) {
+                <span
+                  class="health-change"
+                  [class.health-gain]="change > 0"
+                  [class.health-loss]="change < 0"
+                >
+                  {{ change > 0 ? '+' : '' }}{{ change }} Health
+                </span>
+              }
+              <span>{{ game.progress.consequenceMessage }}</span>
+            </p>
+            <button
+              type="button"
+              aria-label="Dismiss consequence notification"
+              (click)="consequenceHidden.set(true)"
+            >
+              ×
+            </button>
+          </div>
         }
-        <p class="story-text" aria-live="polite">{{ game.section.text }}</p>
+        @if (game.progress.status !== 'dead') {
+          <p class="story-text" aria-live="polite">{{ game.section.text }}</p>
+        }
         @if (game.progress.status === 'playing') {
           <app-adventure-choices
             [options]="game.section.options"
             [loading]="loading"
+            [hintsRemaining]="game.progress.hintsRemaining"
+            [hintsVisible]="game.progress.hintsVisible"
             (selected)="store.choose($event)"
+            (hintRequested)="store.showHint()"
           />
         }
       }

@@ -29,6 +29,35 @@
   background: #f2ebe2;
 }
 
+.adventure-menu,
+.dialog-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.action-dialog {
+  box-sizing: border-box;
+  width: min(28rem, calc(100% - 2rem));
+  padding: 1.25rem;
+  border: 1px solid #e7dac0;
+  border-radius: 0.75rem;
+  background: #fffcf8;
+  color: inherit;
+}
+
+.action-dialog::backdrop {
+  background: #241b1666;
+}
+
+.action-dialog h2 {
+  margin-block-start: 0;
+}
+
+.dialog-actions {
+  justify-content: flex-end;
+}
+
 .story {
   padding: clamp(1rem, 4vw, 1.5rem);
   border: 1px solid #e7dac0;
@@ -36,11 +65,29 @@
   background: linear-gradient(#fbf8f4, #f2ede7);
 }
 
-.story h1 {
+.story-heading {
   margin: 0 0 1.5rem;
+  text-align: center;
+}
+
+.story h1 {
+  margin: 0;
   font-size: clamp(1.55rem, 4vw, 2rem);
   overflow-wrap: anywhere;
-  text-align: center;
+}
+
+.health {
+  display: inline-flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 0.25rem 0.65rem;
+  margin-block-start: 0.65rem;
+  font-size: 0.95rem;
+}
+
+.health meter {
+  width: 5rem;
 }
 
 .story-text {
@@ -54,4 +101,65 @@
 .ending-status {
   margin: 0 0 1.5rem;
   text-align: center;
+}
+
+.death-title {
+  margin: 0 0 1rem;
+  color: #813e32;
+  text-align: center;
+}
+
+.consequence-notification {
+  position: fixed;
+  z-index: 1;
+  inset-inline-end: 1rem;
+  inset-block-end: 1rem;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  box-sizing: border-box;
+  width: min(25rem, calc(100% - 2rem));
+  padding: 0.75rem 1rem;
+  border: 1px solid #e7dac0;
+  border-radius: 0.65rem;
+  background: #fffcf8;
+  box-shadow: 0 3px 15px #241b1626;
+}
+
+.consequence-notification p {
+  flex: 1;
+  display: grid;
+  justify-items: start;
+  gap: 0.35rem;
+  margin: 0.35rem 0;
+  overflow-wrap: anywhere;
+}
+
+.health-change {
+  padding: 0.1rem 0.55rem;
+  border-radius: 999px;
+  background: #efe9e0;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.health-gain {
+  background: #e5f1e7;
+  color: #2d563b;
+}
+
+.health-loss {
+  background: #f6e3e0;
+  color: #813e32;
+}
+
+.consequence-notification button {
+  padding: 0.15rem 0.5rem;
+  border-color: transparent;
+  background: transparent;
+  color: inherit;
+}
+
+.consequence-notification button:hover {
+  background: #f2ebe2;
 }

@@ -6,15 +6,20 @@ import { ApiError } from '../api/api-error';
 import type { BookDetails, BookSection } from '../api/book-api.types';
 
 const STORAGE_KEY = 'adventure-book.progress.v1';
-const STARTING_HEALTH = 10;
+export const MAX_HEALTH = 10;
+const MAX_HINTS = 3;
 
-type AdventureStatus = 'playing' | 'completed';
+type AdventureStatus = 'playing' | 'completed' | 'dead';
 
 interface Progress {
   readonly bookId: number;
   readonly sectionId: number;
   readonly health: number;
   readonly status: AdventureStatus;
+  readonly consequenceMessage: string | null;
+  readonly consequenceHealthChange: number | null;
+  readonly hintsRemaining: number;
+  readonly hintsVisible: boolean;
 }
 
 interface Adventure {
@@ -27,22 +32,46 @@ export function isAdventureId(value: unknown): value is number {
   return typeof value === 'number' && Number.isSafeInteger(value) && value > 0;
 }
 
-type StoredProgress = Omit<Progress, 'status'> & {
+type StoredProgress = Omit<
+  Progress,
+  'status' | 'consequenceMessage' | 'consequenceHealthChange' | 'hintsRemaining' | 'hintsVisible'
+> & {
   readonly status: AdventureStatus | 'paused';
+  readonly consequenceMessage?: string | null;
+  readonly consequenceHealthChange?: number | null;
+  readonly hintsRemaining?: number;
+  readonly hintsVisible?: boolean;
 };
 
 function isProgress(value: unknown): value is StoredProgress {
   if (typeof value !== 'object' || value === null) return false;
 
-  const { bookId, sectionId, health, status } = value as Partial<StoredProgress>;
+  const {
+    bookId,
+    sectionId,
+    health,
+    status,
+    consequenceMessage,
+    consequenceHealthChange,
+    hintsRemaining,
+    hintsVisible,
+  } = value as Partial<StoredProgress>;
   return (
     isAdventureId(bookId) &&
     isAdventureId(sectionId) &&
     typeof health === 'number' &&
     Number.isInteger(health) &&
-    health > 0 &&
-    health <= STARTING_HEALTH &&
-    (status === 'playing' || status === 'paused' || status === 'completed')
+    health >= 0 &&
+    health <= MAX_HEALTH &&
+    (status === 'playing' || status === 'paused' || status === 'completed' || status === 'dead') &&
+    (health === 0) === (status === 'dead') &&
+    (consequenceMessage == null || typeof consequenceMessage === 'string') &&
+    (consequenceHealthChange == null ||
+      (Number.isInteger(consequenceHealthChange) &&
+        Math.abs(consequenceHealthChange) <= MAX_HEALTH)) &&
+    (hintsRemaining === undefined ||
+      (Number.isInteger(hintsRemaining) && hintsRemaining >= 0 && hintsRemaining <= MAX_HINTS)) &&
+    (hintsVisible === undefined || typeof hintsVisible === 'boolean')
   );
 }
 
@@ -53,22 +82,36 @@ export class AdventureStore {
   private readonly pending = signal(false);
   private readonly failure = signal<string | null>(null);
   private readonly notice = signal<string | null>(null);
-  private readonly saved = signal<ReadonlyMap<number, Progress>>(this.readSavedProgress());
+  private readonly savedStatuses = signal(this.checkpointStatuses(this.readSavedProgress()));
   private request?: Subscription;
 
   readonly adventure = this.current.asReadonly();
   readonly loading = this.pending.asReadonly();
   readonly error = this.failure.asReadonly();
   readonly storageNotice = this.notice.asReadonly();
-  readonly savedProgress = this.saved.asReadonly();
+  readonly savedStatusByBook = this.savedStatuses.asReadonly();
 
   open(bookId: number): void {
-    this.current.set(null);
-    this.load(bookId, this.saved().get(bookId));
+    this.clearAdventure();
+    this.load(bookId, this.readSavedProgress().get(bookId));
   }
 
   restart(bookId: number): void {
-    this.load(bookId);
+    this.load(bookId, undefined, true);
+  }
+
+  persist(): boolean {
+    const progress = this.current()?.progress;
+    if (!progress) return false;
+
+    const saved = this.readSavedProgress();
+    saved.set(progress.bookId, progress);
+    return this.writeSavedProgress(saved);
+  }
+
+  discard(bookId: number): void {
+    this.clearAdventure();
+    this.removeSavedProgress(bookId);
   }
 
   choose(index: number): void {
@@ -78,36 +121,76 @@ export class AdventureStore {
     const choice = adventure.section.options[index];
     if (!choice) return;
 
-    this.fetch(this.api.getSection(adventure.book.id, choice.gotoId), (section) =>
-      this.enterSection(adventure.book, section, adventure.progress.health),
-    );
+    this.fetch(this.api.getSection(adventure.book.id, choice.gotoId), (section) => {
+      const consequence = choice.consequence;
+      let health = adventure.progress.health;
+      if (consequence) {
+        const change = consequence.type === 'GAIN_HEALTH' ? consequence.value : -consequence.value;
+        health = Math.max(0, Math.min(MAX_HEALTH, health + change));
+      }
+      this.enterSection(
+        adventure.book,
+        section,
+        health,
+        consequence
+          ? { message: consequence.text, healthChange: health - adventure.progress.health }
+          : null,
+        adventure.progress.hintsRemaining,
+      );
+    });
   }
 
-  cancel(): void {
+  showHint(): void {
+    const adventure = this.current();
+    if (!adventure || adventure.progress.status !== 'playing' || this.pending()) return;
+
+    const { book, section, progress } = adventure;
+    if (progress.hintsVisible || progress.hintsRemaining === 0) return;
+    if (!section.options.some((choice) => choice.consequence)) return;
+
+    this.showAdventure(book, section, {
+      ...progress,
+      hintsVisible: true,
+      hintsRemaining: progress.hintsRemaining - 1,
+    });
+  }
+
+  clearAdventure(): void {
+    this.cancel();
+    this.current.set(null);
+    this.failure.set(null);
+  }
+
+  private cancel(): void {
     this.request?.unsubscribe();
     this.request = undefined;
     this.pending.set(false);
   }
 
-  private load(bookId: number, saved?: Progress): void {
+  private load(bookId: number, progress?: Progress, restarting = false): void {
     const content = this.api
       .getBook(bookId)
       .pipe(
         switchMap((book) =>
           this.api
-            .getSection(book.id, saved?.sectionId ?? book.beginningSectionId)
+            .getSection(book.id, progress?.sectionId ?? book.beginningSectionId)
             .pipe(map((section) => ({ book, section }))),
         ),
       );
 
     this.fetch(
       content,
-      ({ book, section }) => this.enterSection(book, section, saved?.health ?? STARTING_HEALTH),
+      ({ book, section }) => {
+        if (progress) {
+          this.showAdventure(book, section, progress);
+        } else {
+          this.enterSection(book, section, MAX_HEALTH, null);
+          if (restarting) this.removeSavedProgress(bookId);
+        }
+      },
       (error) => {
-        if (saved && error instanceof ApiError && error.status === 404) {
-          const remaining = new Map(this.saved());
-          remaining.delete(bookId);
-          this.saveProgress(remaining);
+        if (progress && error instanceof ApiError && error.status === 404) {
+          this.removeSavedProgress(bookId);
           this.failure.set(
             'This saved adventure is no longer available. You can try starting again.',
           );
@@ -139,14 +222,37 @@ export class AdventureStore {
     });
   }
 
-  private enterSection(book: BookDetails, section: BookSection, health: number): void {
-    const status = section.type === 'END' ? 'completed' : 'playing';
-    const progress: Progress = { bookId: book.id, sectionId: section.id, health, status };
-    this.current.set({ book, section, progress });
-    this.saveProgress(new Map(this.saved()).set(book.id, progress));
+  private enterSection(
+    book: BookDetails,
+    section: BookSection,
+    health: number,
+    consequence: { message: string; healthChange: number } | null,
+    hintsRemaining = MAX_HINTS,
+  ): void {
+    let status: AdventureStatus = 'playing';
+    if (health === 0) {
+      status = 'dead';
+    } else if (section.type === 'END') {
+      status = 'completed';
+    }
+    this.showAdventure(book, section, {
+      bookId: book.id,
+      sectionId: section.id,
+      health,
+      status,
+      consequenceMessage: consequence?.message ?? null,
+      consequenceHealthChange: consequence?.healthChange ?? null,
+      hintsRemaining,
+      hintsVisible: false,
+    });
+    if (status !== 'playing') this.persist();
   }
 
-  private readSavedProgress(): ReadonlyMap<number, Progress> {
+  private showAdventure(book: BookDetails, section: BookSection, progress: Progress): void {
+    this.current.set({ book, section, progress });
+  }
+
+  private readSavedProgress(): Map<number, Progress> {
     const progressByBook = new Map<number, Progress>();
     let raw: string | null;
     try {
@@ -165,7 +271,14 @@ export class AdventureStore {
       for (const entry of entries) {
         if (isProgress(entry)) {
           const status = entry.status === 'paused' ? 'playing' : entry.status;
-          progressByBook.set(entry.bookId, { ...entry, status });
+          progressByBook.set(entry.bookId, {
+            ...entry,
+            status,
+            consequenceMessage: entry.consequenceMessage ?? null,
+            consequenceHealthChange: entry.consequenceHealthChange ?? null,
+            hintsRemaining: entry.hintsRemaining ?? MAX_HINTS,
+            hintsVisible: entry.hintsVisible ?? false,
+          });
         } else {
           invalid = true;
         }
@@ -175,27 +288,37 @@ export class AdventureStore {
     }
 
     if (invalid) {
-      this.writeSavedProgress(progressByBook);
-      if (!this.notice()) this.notice.set('Some saved progress could not be restored.');
+      this.notice.set('Some saved progress could not be restored.');
     }
     return progressByBook;
   }
 
-  private saveProgress(progressByBook: ReadonlyMap<number, Progress>): void {
-    this.saved.set(progressByBook);
-    this.writeSavedProgress(progressByBook);
+  private removeSavedProgress(bookId: number): void {
+    const saved = this.readSavedProgress();
+    if (saved.delete(bookId) && !this.writeSavedProgress(saved)) {
+      this.notice.set('Saved progress could not be removed from this device.');
+    }
   }
 
-  private writeSavedProgress(progressByBook: ReadonlyMap<number, Progress>): void {
+  private checkpointStatuses(
+    saved: ReadonlyMap<number, Progress>,
+  ): ReadonlyMap<number, AdventureStatus> {
+    return new Map(Array.from(saved, ([id, progress]) => [id, progress.status]));
+  }
+
+  private writeSavedProgress(progressByBook: ReadonlyMap<number, Progress>): boolean {
     try {
       if (progressByBook.size > 0) {
         localStorage.setItem(STORAGE_KEY, JSON.stringify([...progressByBook.values()]));
       } else {
         localStorage.removeItem(STORAGE_KEY);
       }
+      this.savedStatuses.set(this.checkpointStatuses(progressByBook));
       this.notice.set(null);
+      return true;
     } catch {
       this.notice.set('Progress cannot be saved on this device.');
+      return false;
     }
   }
 }
