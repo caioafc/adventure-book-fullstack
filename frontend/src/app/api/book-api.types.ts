@@ -1,11 +1,17 @@
 export type Difficulty = 'EASY' | 'MEDIUM' | 'HARD';
+
+export interface BookFilter {
+  readonly key: string;
+  readonly label: string;
+  readonly type: 'select';
+  readonly options: readonly string[];
+}
 export type SectionType = 'BEGIN' | 'NODE' | 'END';
 export type ConsequenceType = 'GAIN_HEALTH' | 'LOSE_HEALTH';
 
 export interface BookQuery {
   readonly search?: string;
   readonly author?: string;
-  readonly difficulty?: Difficulty;
   readonly page?: number;
   readonly size?: number;
 }

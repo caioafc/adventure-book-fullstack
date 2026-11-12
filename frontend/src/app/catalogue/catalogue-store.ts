@@ -3,7 +3,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { EMPTY, Subject, catchError, of, switchMap, tap, timer } from 'rxjs';
 
 import { ApiError } from '../api/api-error';
-import type { BookPage, BookSummary, Difficulty } from '../api/book-api.types';
+import type { BookFilter, BookPage, BookSummary } from '../api/book-api.types';
 import { BookCatalogueApi } from '../api/book-catalogue-api';
 
 const PAGE_SIZE = 3;
@@ -11,8 +11,12 @@ const FILTER_DELAY_MS = 300;
 
 interface CatalogueFilters {
   readonly search: string;
-  readonly difficulty: Difficulty | '';
+  readonly selected: ReadonlyMap<string, string>;
 }
+
+type FilterOptionsState =
+  | { readonly status: 'idle' | 'loading' | 'error' }
+  | { readonly status: 'ready'; readonly filters: readonly BookFilter[] };
 
 interface CatalogueRequest {
   readonly page: number;
@@ -37,10 +41,11 @@ interface CatalogueState {
 export class CatalogueStore {
   private readonly api = inject(BookCatalogueApi);
   private readonly requests = new Subject<CatalogueRequest>();
+  private readonly filterOptionsSignal = signal<FilterOptionsState>({ status: 'idle' });
   private failedRequest: CatalogueRequest | null = null;
   private readonly stateSignal = signal<CatalogueState>({
     books: [],
-    filters: { search: '', difficulty: '' },
+    filters: { search: '', selected: new Map() },
     catalogueTotal: null,
     totalElements: 0,
     targetCount: PAGE_SIZE,
@@ -51,26 +56,25 @@ export class CatalogueStore {
   });
 
   readonly state = this.stateSignal.asReadonly();
+  readonly filterOptions = this.filterOptionsSignal.asReadonly();
   readonly hasFilters = computed(() => {
-    const { search, difficulty } = this.state().filters;
-    return Boolean(search.trim() || difficulty);
+    const { search, selected } = this.state().filters;
+    return search.trim().length > 0 || selected.size > 0;
   });
 
   constructor() {
     this.requests
       .pipe(
         switchMap((request) => {
-          const { search, difficulty } = this.state().filters;
+          const { search, selected } = this.state().filters;
           const ready = request.delayMs ? timer(request.delayMs) : of(0);
 
           return ready.pipe(
             switchMap(() =>
-              this.api.getBooks({
-                search: search.trim(),
-                difficulty: difficulty || undefined,
-                page: request.page,
-                size: request.size,
-              }),
+              this.api.getBooks(
+                { search: search.trim(), page: request.page, size: request.size },
+                selected,
+              ),
             ),
             tap((page) => this.applyPage(request, page)),
             catchError((error: unknown) => {
@@ -90,13 +94,52 @@ export class CatalogueStore {
   }
 
   ensureLoaded(): void {
+    if (this.filterOptions().status === 'idle') {
+      this.loadFilterOptions();
+    }
     const { nextPage, loading, error, targetCount } = this.state();
     if (nextPage === 0 && !loading && !error) {
       this.load({ page: 0, size: targetCount, append: false, delayMs: 0 });
     }
   }
 
-  setFilters(changes: Partial<CatalogueFilters>, debounce = true): void {
+  loadFilterOptions(): void {
+    const { status } = this.filterOptions();
+    if (status === 'loading' || status === 'ready') return;
+
+    this.filterOptionsSignal.set({ status: 'loading' });
+    this.api.getFilters().subscribe({
+      next: (filters) => this.filterOptionsSignal.set({ status: 'ready', filters }),
+      error: () => this.filterOptionsSignal.set({ status: 'error' }),
+    });
+  }
+
+  setSearch(search: string): void {
+    this.setFilters({ search }, FILTER_DELAY_MS);
+  }
+
+  toggleFilter(key: string, value: string): void {
+    const options = this.filterOptions();
+    if (
+      options.status !== 'ready' ||
+      !options.filters.some(
+        (filter) =>
+          filter.key === key && filter.type === 'select' && filter.options.includes(value),
+      )
+    ) {
+      return;
+    }
+
+    const selected = new Map(this.state().filters.selected);
+    if (selected.get(key) === value) {
+      selected.delete(key);
+    } else {
+      selected.set(key, value);
+    }
+    this.setFilters({ selected });
+  }
+
+  private setFilters(changes: Partial<CatalogueFilters>, delayMs = 0): void {
     const current = this.state();
     const filters = { ...current.filters, ...changes };
     this.stateSignal.update((state) => ({ ...state, filters }));
@@ -104,12 +147,12 @@ export class CatalogueStore {
       page: 0,
       size: current.targetCount,
       append: false,
-      delayMs: debounce ? FILTER_DELAY_MS : 0,
+      delayMs,
     });
   }
 
   clearFilters(): void {
-    this.setFilters({ search: '', difficulty: '' }, false);
+    this.setFilters({ search: '', selected: new Map() });
   }
 
   loadNextPage(): void {
@@ -135,9 +178,7 @@ export class CatalogueStore {
 
   private applyPage(request: CatalogueRequest, page: BookPage): void {
     const current = this.state();
-    const booksById = new Map(
-      (request.append ? current.books : []).map((book) => [book.id, book]),
-    );
+    const booksById = new Map((request.append ? current.books : []).map((book) => [book.id, book]));
     for (const book of page.content) {
       booksById.set(book.id, book);
     }

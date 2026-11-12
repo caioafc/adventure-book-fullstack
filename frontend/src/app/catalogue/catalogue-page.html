@@ -51,36 +51,50 @@
         aria-label="Search adventures by title or author"
         placeholder="Search adventures…"
         [value]="state.filters.search"
-        (input)="catalogue.setFilters({ search: search.value })"
+        (input)="catalogue.setSearch(search.value)"
       />
     </label>
-    <div class="filter-badges" role="group" aria-label="Difficulty filters">
-      <span class="filter-label" aria-hidden="true">
-        <svg
-          width="16"
-          height="16"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linejoin="round"
-          focusable="false"
-        >
-          <path d="M3 4h18l-7 8v7l-4 2v-9L3 4Z" />
-        </svg>
-        Filters:
-      </span>
-      @for (level of difficulties; track level) {
-        <button
-          type="button"
-          class="filter-badge"
-          [attr.aria-pressed]="state.filters.difficulty === level"
-          (click)="toggleDifficulty(level)"
-        >
-          {{ level | titlecase }}
-        </button>
+    @let filterOptions = catalogue.filterOptions();
+    @if (filterOptions.status === 'ready') {
+      @for (filter of filterOptions.filters; track filter.key) {
+        @if (filter.type === 'select' && filter.options.length > 0) {
+          <div class="filter-badges" role="group" [attr.aria-label]="filter.label + ' filters'">
+            <span class="filter-label" aria-hidden="true">
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linejoin="round"
+                focusable="false"
+              >
+                <path d="M3 4h18l-7 8v7l-4 2v-9L3 4Z" />
+              </svg>
+              {{ filter.label }}:
+            </span>
+            @for (option of filter.options; track option) {
+              <button
+                type="button"
+                class="filter-badge"
+                [attr.aria-pressed]="state.filters.selected.get(filter.key) === option"
+                (click)="catalogue.toggleFilter(filter.key, option)"
+              >
+                {{ option.replaceAll('_', ' ') | titlecase }}
+              </button>
+            }
+          </div>
+        }
       }
-    </div>
+    } @else if (filterOptions.status === 'error') {
+      <div class="filter-badges">
+        <span role="status">Could not load filters.</span>
+        <button type="button" class="filter-badge" (click)="catalogue.loadFilterOptions()">
+          Retry filters
+        </button>
+      </div>
+    }
   </div>
 
   @if (adventure.storageNotice(); as notice) {

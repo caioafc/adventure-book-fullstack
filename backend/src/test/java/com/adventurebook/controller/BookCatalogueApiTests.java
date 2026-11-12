@@ -16,6 +16,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
 
+import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.hasSize;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -158,6 +159,19 @@ class BookCatalogueApiTests {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content", hasSize(0)))
                 .andExpect(jsonPath("$.totalElements").value(0));
+    }
+
+    @Test
+    void advertisesAllDifficultyOptionsWithAnEmptyCatalogue() throws Exception {
+        books.deleteAll();
+
+        mvc.perform(get("/api/books/filters"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(1)))
+                .andExpect(jsonPath("$[0].key").value("difficulty"))
+                .andExpect(jsonPath("$[0].label").value("Difficulty"))
+                .andExpect(jsonPath("$[0].type").value("select"))
+                .andExpect(jsonPath("$[0].options", contains("EASY", "MEDIUM", "HARD")));
     }
 
     @Test

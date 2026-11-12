@@ -1,6 +1,9 @@
 package com.adventurebook.controller;
 
+import java.util.List;
+
 import com.adventurebook.dto.BookDetailsDTO;
+import com.adventurebook.dto.BookFilterDTO;
 import com.adventurebook.dto.BookPageDTO;
 import com.adventurebook.dto.BookSectionDTO;
 import com.adventurebook.enums.ApiErrorCode;
@@ -34,6 +37,11 @@ public class BookController {
                                 @RequestParam(required = false) Difficulty difficulty,
                                 @PageableDefault(size = 10) Pageable pageable) {
         return catalogue.findBooks(search, author, difficulty, pageable);
+    }
+
+    @GetMapping("/filters")
+    public List<BookFilterDTO> getFilters() {
+        return catalogue.getFilters();
     }
 
     @GetMapping("/{bookId}")
