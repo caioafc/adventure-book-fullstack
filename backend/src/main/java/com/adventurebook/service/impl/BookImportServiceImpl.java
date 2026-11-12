@@ -9,6 +9,7 @@ import java.util.Map;
 import com.adventurebook.dto.BookImportDTO;
 import com.adventurebook.dto.BookImportResultDTO;
 import com.adventurebook.enums.BookImportStatus;
+import com.adventurebook.exception.BookValidationError;
 import com.adventurebook.exception.InvalidBookException;
 import com.adventurebook.model.Book;
 import com.adventurebook.model.BookOption;
@@ -17,7 +18,7 @@ import com.adventurebook.repository.BookOptionRepository;
 import com.adventurebook.repository.BookRepository;
 import com.adventurebook.repository.BookSectionRepository;
 import com.adventurebook.service.BookImportService;
-import com.adventurebook.exception.BookValidationError;
+import com.adventurebook.service.util.BookImportUtils;
 import jakarta.validation.Validator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -54,7 +55,7 @@ public class BookImportServiceImpl implements BookImportService {
 
         try {
             return books.findByContentHash(hash)
-                    .map(this::duplicate)
+                    .map(BookImportUtils::duplicate)
                     .orElseGet(() -> persist(parse(content), sourceFilename, hash));
         } catch (InvalidBookException exception) {
             return new BookImportResultDTO(BookImportStatus.REJECTED, null, hash, exception.getErrors());
@@ -115,12 +116,7 @@ public class BookImportServiceImpl implements BookImportService {
         options.saveAll(bookOptions);
     }
 
-    private BookImportResultDTO duplicate(Book book) {
-        return new BookImportResultDTO(BookImportStatus.DUPLICATE, book.getId(), book.getContentHash(), List.of());
-    }
-
-    @Override
-    public BookImportDTO parse(byte[] content) {
+    private BookImportDTO parse(byte[] content) {
         if (content == null || content.length == 0) {
             throw new InvalidBookException(List.of(new BookValidationError("$", "Book JSON is empty")));
         }

@@ -2,10 +2,15 @@ package com.adventurebook.service;
 
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.Comparator;
+import java.util.List;
 import java.util.stream.Stream;
 
-import com.adventurebook.dto.BookImportDTO;
-import com.adventurebook.exception.InvalidBookException;
+import com.adventurebook.dto.BookImportResultDTO;
+import com.adventurebook.enums.BookImportStatus;
+import com.adventurebook.model.BookSection;
+import com.adventurebook.repository.BookOptionRepository;
+import com.adventurebook.repository.BookSectionRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -14,12 +19,13 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.transaction.annotation.Transactional;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE,
         properties = "spring.datasource.url=jdbc:h2:mem:book-import-validation;DB_CLOSE_DELAY=-1")
+@Transactional
 class BookImportServiceTests {
 
     private static final String OPTION = """
@@ -36,35 +42,43 @@ class BookImportServiceTests {
     @Autowired
     private BookImportService service;
 
+    @Autowired
+    private BookSectionRepository sections;
+
+    @Autowired
+    private BookOptionRepository options;
+
     @Test
     void normalizesNumericAndStringIdsAndParsesStringConsequenceValues() {
-        BookImportDTO book = parse(VALID);
+        List<BookSection> book = importSections(VALID);
 
-        assertThat(book.sections().getFirst().id()).isEqualTo("1");
-        assertThat(book.sections().get(1).id()).isEqualTo("500");
-        assertThat(book.sections().getFirst().options().getFirst().gotoId()).isEqualTo("500");
-        assertThat(book.sections().getFirst().options().getFirst().consequence().value()).isEqualTo(3);
-        assertThat(book.sections().get(1).options()).isNull();
+        assertThat(book).extracting(BookSection::getSectionKey).containsExactly("1", "500");
+        assertThat(options.findAllBySectionIdOrderByPositionAsc(book.getFirst().getId()))
+                .singleElement().satisfies(option -> {
+                    assertThat(option.getDestination().getId()).isEqualTo(book.getLast().getId());
+                    assertThat(option.getConsequenceValue()).isEqualTo(3);
+                });
+        assertThat(options.findAllBySectionIdOrderByPositionAsc(book.getLast().getId())).isEmpty();
     }
 
     @Test
     void preservesNumericIdsLargerThanTheLongRange() {
         String largeId = "999999999999999999999999999999";
-        BookImportDTO book = parse(VALID.replace("\"id\":1", "\"id\":" + largeId));
+        List<BookSection> book = importSections(VALID.replace("\"id\":1", "\"id\":" + largeId));
 
-        assertThat(book.sections().getFirst().id()).isEqualTo(largeId);
+        assertThat(book.getFirst().getSectionKey()).isEqualTo(largeId);
     }
 
     @Test
     void acceptsSectionTextLongerThanVarcharLimits() {
         String story = "The adventure continues. ".repeat(1000);
 
-        assertThat(parse(VALID.replace("Start", story)).sections().getFirst().text()).isEqualTo(story);
+        assertThat(importSections(VALID.replace("Start", story)).getFirst().getText()).isEqualTo(story);
     }
 
     @Test
     void acceptsCyclesMultipleEndingsUnreachableSectionsAndOptionalConsequences() {
-        BookImportDTO book = parse("""
+        List<BookSection> book = importSections("""
                 {"title":"Paths","author":"Alex","difficulty":"EASY","extra":"ignored",
                  "sections":[
                    {"id":"1","text":"Start","type":"BEGIN","extra":42,"options":[
@@ -76,16 +90,18 @@ class BookImportServiceTests {
                      {"description":"Stay","gotoId":4}]}]}
                 """);
 
-        assertThat(book.sections()).hasSize(4);
-        assertThat(book.sections().getFirst().options().getFirst().consequence()).isNull();
+        assertThat(book).hasSize(4);
+        assertThat(options.findAllBySectionIdOrderByPositionAsc(book.getFirst().getId()).getFirst()
+                .getConsequenceType()).isNull();
     }
 
     @Test
     void acceptsNumericConsequenceValuesAndHealing() {
-        BookImportDTO book = parse(VALID.replace("\"value\":\"3\"", "\"value\":2")
+        List<BookSection> book = importSections(VALID.replace("\"value\":\"3\"", "\"value\":2")
                 .replace("LOSE_HEALTH", "GAIN_HEALTH"));
 
-        assertThat(book.sections().getFirst().options().getFirst().consequence().value()).isEqualTo(2);
+        assertThat(options.findAllBySectionIdOrderByPositionAsc(book.getFirst().getId()).getFirst()
+                .getConsequenceValue()).isEqualTo(2);
     }
 
     @ParameterizedTest
@@ -136,7 +152,7 @@ class BookImportServiceTests {
     @ParameterizedTest
     @ValueSource(strings = {"", "  ", "{broken", "[]"})
     void rejectsEmptyMalformedOrNonObjectJson(String json) {
-        assertThatThrownBy(() -> parse(json)).isInstanceOf(InvalidBookException.class);
+        assertThat(importBook(json).status()).isEqualTo(BookImportStatus.REJECTED);
     }
 
     @ParameterizedTest
@@ -151,8 +167,7 @@ class BookImportServiceTests {
         try (InputStream input = getClass().getResourceAsStream("/books/" + filename)) {
             assertThat(input).as("Test resource %s", filename).isNotNull();
             byte[] content = input.readAllBytes();
-            assertThatThrownBy(() -> service.parse(content)).isInstanceOf(InvalidBookException.class)
-                    .hasMessageContaining(expectedError);
+            assertRejected(service.importBook(filename, content), expectedError);
         }
     }
 
@@ -161,19 +176,29 @@ class BookImportServiceTests {
         String invalid = VALID.replace("The Escape", " ")
                 .replace("\"gotoId\":500", "\"gotoId\":999");
 
-        assertThatThrownBy(() -> parse(invalid)).isInstanceOfSatisfying(InvalidBookException.class, error -> {
-            assertThat(error.getErrors()).anySatisfy(issue -> assertThat(issue.path()).isEqualTo("$.title"));
-            assertThat(error.getErrors()).anySatisfy(issue ->
-                    assertThat(issue.path()).isEqualTo("$.sections[0].options[0].gotoId"));
-        });
+        BookImportResultDTO result = importBook(invalid);
+        assertThat(result.status()).isEqualTo(BookImportStatus.REJECTED);
+        assertThat(result.errors()).anySatisfy(issue -> assertThat(issue.path()).isEqualTo("$.title"));
+        assertThat(result.errors()).anySatisfy(issue ->
+                assertThat(issue.path()).isEqualTo("$.sections[0].options[0].gotoId"));
     }
 
-    private BookImportDTO parse(String json) {
-        return service.parse(json.getBytes(StandardCharsets.UTF_8));
+    private List<BookSection> importSections(String json) {
+        assertThat(importBook(json).status()).isEqualTo(BookImportStatus.IMPORTED);
+        return sections.findAll().stream().sorted(Comparator.comparing(BookSection::getId)).toList();
+    }
+
+    private BookImportResultDTO importBook(String json) {
+        return service.importBook("validation.json", json.getBytes(StandardCharsets.UTF_8));
     }
 
     private void assertRejected(String json, String expectedError) {
-        assertThatThrownBy(() -> parse(json)).isInstanceOf(InvalidBookException.class)
-                .hasMessageContaining(expectedError);
+        assertRejected(importBook(json), expectedError);
+    }
+
+    private void assertRejected(BookImportResultDTO result, String expectedError) {
+        assertThat(result.status()).isEqualTo(BookImportStatus.REJECTED);
+        assertThat(result.errors()).anySatisfy(error ->
+                assertThat(error.path() + ": " + error.message()).contains(expectedError));
     }
 }

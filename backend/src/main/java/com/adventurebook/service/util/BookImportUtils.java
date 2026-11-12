@@ -1,21 +1,59 @@
 package com.adventurebook.service.util;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.HexFormat;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
+import java.util.UUID;
 
 import com.adventurebook.dto.BookImportDTO;
+import com.adventurebook.dto.BookImportFailureDTO;
+import com.adventurebook.dto.BookImportResultDTO;
+import com.adventurebook.enums.BookImportStatus;
 import com.adventurebook.enums.SectionType;
 import com.adventurebook.exception.BookValidationError;
+import com.adventurebook.model.Book;
 import tools.jackson.core.JacksonException;
+import tools.jackson.databind.json.JsonMapper;
+
+import static java.nio.file.LinkOption.NOFOLLOW_LINKS;
+import static java.nio.file.StandardOpenOption.CREATE_NEW;
 
 public final class BookImportUtils {
 
     private BookImportUtils() {
+    }
+
+    public static BookImportResultDTO duplicate(Book book) {
+        return new BookImportResultDTO(BookImportStatus.DUPLICATE, book.getId(), book.getContentHash(), List.of());
+    }
+
+    public static List<Path> readyFiles(Path ready) throws IOException {
+        try (var files = Files.list(ready)) {
+            return files.filter(file -> Files.isRegularFile(file, NOFOLLOW_LINKS))
+                    .filter(file -> file.getFileName().toString().toLowerCase(Locale.ROOT).endsWith(".json"))
+                    .toList();
+        }
+    }
+
+    public static Path archive(Path source, Path directory, List<BookValidationError> errors, JsonMapper mapper)
+            throws IOException {
+        String archiveId = UUID.randomUUID().toString();
+        String archiveName = archiveId + ".json";
+        if (!errors.isEmpty()) {
+            var report = new BookImportFailureDTO(source.getFileName().toString(), archiveName, errors);
+            // Keep the source in ready/ if writing diagnostics fails.
+            Files.writeString(directory.resolve(archiveId + "-report.json"),
+                    mapper.writerWithDefaultPrettyPrinter().writeValueAsString(report), CREATE_NEW);
+        }
+        return Files.move(source, directory.resolve(archiveName));
     }
 
     public static String contentHash(byte[] content) {

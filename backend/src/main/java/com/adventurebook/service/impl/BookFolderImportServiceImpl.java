@@ -4,12 +4,9 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
-import java.util.Locale;
-import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import com.adventurebook.config.BookImportProperties;
-import com.adventurebook.dto.BookImportFailureDTO;
 import com.adventurebook.dto.BookImportResultDTO;
 import com.adventurebook.exception.BookValidationError;
 import com.adventurebook.service.BookFolderImportService;
@@ -24,8 +21,8 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import tools.jackson.databind.json.JsonMapper;
 
-import static java.nio.file.LinkOption.NOFOLLOW_LINKS;
-import static java.nio.file.StandardOpenOption.CREATE_NEW;
+import static com.adventurebook.service.util.BookImportUtils.archive;
+import static com.adventurebook.service.util.BookImportUtils.readyFiles;
 
 @Service
 @RequiredArgsConstructor
@@ -51,13 +48,7 @@ public class BookFolderImportServiceImpl implements BookFolderImportService {
             Path ready = Files.createDirectories(directory.resolve("ready"));
             Path added = Files.createDirectories(directory.resolve("added"));
             Path failed = Files.createDirectories(directory.resolve("failed"));
-            List<Path> candidates;
-            try (var files = Files.list(ready)) {
-                candidates = files.filter(file -> Files.isRegularFile(file, NOFOLLOW_LINKS))
-                        .filter(file -> file.getFileName().toString().toLowerCase(Locale.ROOT).endsWith(".json"))
-                        .toList();
-            }
-            for (Path file : candidates) {
+            for (Path file : readyFiles(ready)) {
                 try {
                     process(file, added, failed);
                 } catch (IOException | RuntimeException exception) {
@@ -76,28 +67,15 @@ public class BookFolderImportServiceImpl implements BookFolderImportService {
         try {
             result = importService.importBook(file.getFileName().toString(), Files.readAllBytes(file));
         } catch (DataIntegrityViolationException exception) {
-            archive(file, failed, List.of(new BookValidationError("$database",
-                    exception.getMostSpecificCause().getMessage())));
+            Path destination = archive(file, failed, List.of(new BookValidationError("$database",
+                    exception.getMostSpecificCause().getMessage())), mapper);
+            log.warn("Book file {} failed a database constraint; archived to {}", file.getFileName(), destination);
             return;
         }
-        switch (result.status()) {
-            case IMPORTED, DUPLICATE -> archive(file, added, List.of());
-            case REJECTED -> archive(file, failed, result.errors());
-        }
-        log.info("Book file {}: {}", file.getFileName(), result.status());
-    }
-
-    private void archive(Path source, Path directory, List<BookValidationError> errors) throws IOException {
-        String archiveId = UUID.randomUUID().toString();
-        String archiveName = archiveId + ".json";
-        Path destination = directory.resolve(archiveName);
-        if (!errors.isEmpty()) {
-            var report = new BookImportFailureDTO(source.getFileName().toString(), archiveName, errors);
-            // Write diagnostics before removing the source from ready/.
-            Files.writeString(directory.resolve(archiveId + "-report.json"),
-                    mapper.writerWithDefaultPrettyPrinter().writeValueAsString(report), CREATE_NEW);
-        }
-        Files.move(source, destination);
-        log.info("Archived {} as {}", source.getFileName(), destination);
+        Path destination = switch (result.status()) {
+            case IMPORTED, DUPLICATE -> archive(file, added, List.of(), mapper);
+            case REJECTED -> archive(file, failed, result.errors(), mapper);
+        };
+        log.info("Book file {}: {}; archived to {}", file.getFileName(), result.status(), destination);
     }
 }
