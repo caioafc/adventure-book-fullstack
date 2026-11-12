@@ -25,9 +25,9 @@ public class BookCatalogueServiceImpl implements BookCatalogueService {
     private final BookRepository books;
 
     @Override
-    public BookPageDTO findBooks(String search, String author, Difficulty difficulty, Pageable pageable) {
+    public BookPageDTO findBooks(String search, Difficulty difficulty, Pageable pageable) {
         PageRequest page = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), Sort.by("id"));
-        Page<BookSummaryDTO> result = books.findAll(withFilters(normalize(search), normalize(author), difficulty), page)
+        Page<BookSummaryDTO> result = books.findAll(withFilters(normalize(search), difficulty), page)
                 .map(book -> new BookSummaryDTO(book.getId(), book.getTitle(),
                         book.getAuthor(), book.getDifficulty()));
         return new BookPageDTO(result.getContent(), result.getNumber(), result.getSize(),

@@ -14,7 +14,7 @@ public final class BookSpecifications {
     private BookSpecifications() {
     }
 
-    public static Specification<Book> withFilters(String search, String author, Difficulty difficulty) {
+    public static Specification<Book> withFilters(String search, Difficulty difficulty) {
         return (root, query, builder) -> {
             List<Predicate> predicates = new ArrayList<>();
             if (search != null) {
@@ -22,9 +22,6 @@ public final class BookSpecifications {
                 predicates.add(builder.or(
                         builder.greaterThan(builder.locate(builder.lower(root.get("title")), text), 0),
                         builder.greaterThan(builder.locate(builder.lower(root.get("author")), text), 0)));
-            }
-            if (author != null) {
-                predicates.add(builder.equal(builder.lower(root.get("author")), author.toLowerCase(Locale.ROOT)));
             }
             if (difficulty != null) {
                 predicates.add(builder.equal(root.get("difficulty"), difficulty));

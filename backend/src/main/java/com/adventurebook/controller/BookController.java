@@ -33,10 +33,9 @@ public class BookController {
 
     @GetMapping
     public BookPageDTO getBooks(@RequestParam(required = false) String search,
-                                @RequestParam(required = false) String author,
                                 @RequestParam(required = false) Difficulty difficulty,
                                 @PageableDefault(size = 10) Pageable pageable) {
-        return catalogue.findBooks(search, author, difficulty, pageable);
+        return catalogue.findBooks(search, difficulty, pageable);
     }
 
     @GetMapping("/filters")

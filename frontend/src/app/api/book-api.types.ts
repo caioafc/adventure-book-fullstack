@@ -11,7 +11,6 @@ export type ConsequenceType = 'GAIN_HEALTH' | 'LOSE_HEALTH';
 
 export interface BookQuery {
   readonly search?: string;
-  readonly author?: string;
   readonly page?: number;
   readonly size?: number;
 }

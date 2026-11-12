@@ -87,8 +87,8 @@ class BookCatalogueApiTests {
     }
 
     @Test
-    void combinesSearchAuthorAndDifficultyWithAndAndPaginatesMatches() throws Exception {
-        mvc.perform(get("/api/books").param("search", " CAVE ").param("author", " mira vale ")
+    void combinesSearchAndDifficultyAndPaginatesMatches() throws Exception {
+        mvc.perform(get("/api/books").param("search", " CAVE ")
                         .param("difficulty", "HARD").param("size", "1"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content", hasSize(1)))
@@ -100,7 +100,7 @@ class BookCatalogueApiTests {
 
     @Test
     void paginatesFilteredResultsUsingTheFilteredCount() throws Exception {
-        mvc.perform(get("/api/books").param("author", "MIRA VALE").param("page", "1").param("size", "1"))
+        mvc.perform(get("/api/books").param("search", "MIRA VALE").param("page", "1").param("size", "1"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content", hasSize(1)))
                 .andExpect(jsonPath("$.content[0].title").value("Moon Cave"))
@@ -120,14 +120,14 @@ class BookCatalogueApiTests {
 
     @Test
     void treatsBlankFiltersAsAbsent() throws Exception {
-        mvc.perform(get("/api/books").param("search", " ").param("author", " ").param("difficulty", ""))
+        mvc.perform(get("/api/books").param("search", " ").param("difficulty", ""))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.totalElements").value(4));
     }
 
     @Test
     void returnsAnEmptyPageWhenFiltersDoNotMatch() throws Exception {
-        mvc.perform(get("/api/books").param("search", "Cave").param("author", "Owen Pike"))
+        mvc.perform(get("/api/books").param("search", "Tower").param("difficulty", "EASY"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content", hasSize(0)))
                 .andExpect(jsonPath("$.totalElements").value(0))

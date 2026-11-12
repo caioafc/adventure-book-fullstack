@@ -9,7 +9,7 @@ import org.springframework.data.domain.Pageable;
 
 public interface BookCatalogueService {
 
-    BookPageDTO findBooks(String search, String author, Difficulty difficulty, Pageable pageable);
+    BookPageDTO findBooks(String search, Difficulty difficulty, Pageable pageable);
 
     List<BookFilterDTO> getFilters();
 }
