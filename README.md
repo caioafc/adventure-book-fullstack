@@ -38,6 +38,10 @@ Open [the catalogue](http://localhost:4200). The Angular development server forw
 
 ## Features and how to test
 
+### Test the API with Postman
+
+Import the [Adventure Book API collection](fixtures/postman/Adventure%20Book%20API.postman_collection.json) into Postman and start the backend. The collection uses `http://localhost:8080` by default. Run the **Catalogue** and **Edge cases** folders with or without imported books. For the **Adventure walkthrough** and **Adventure request errors**, import **Signal from Ember Station** first, then run the requests in order so Postman can reuse the IDs returned by the API.
+
 ### Import books
 
 The `books/ready` directory simulates an FTP drop folder on your machine. Move JSON files from `fixtures/books` or `fixtures/books/demo` into `books/ready` at the repository root. The backend scans the folder at startup and then 30 seconds after each scan finishes. When dropping a file into the folder while the backend is running, use a temporary extension and rename it to `.json` after the transfer completes.
