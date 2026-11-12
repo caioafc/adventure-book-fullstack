@@ -1,0 +1,1396 @@
+{
+  "info": {
+    "name": "Adventure Book API",
+    "description": "Tests for GET /api/books, GET /api/books/{bookId}, and GET /api/books/{bookId}/sections/{sectionId}. Start the backend, import the collection, and set baseUrl if needed. Catalogue and Edge cases can run with an empty database. For the Adventure walkthrough and Adventure request errors, queue demo-signal-from-ember-station.json from fixtures/books/demo into books/ready and run the requests in order. The walkthrough saves IDs returned by the API. Page numbers start at zero. Error requests verify the HTTP status, code, and description.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080",
+      "type": "string",
+      "description": "Backend URL without a trailing slash."
+    },
+    {
+      "key": "page",
+      "value": "0",
+      "type": "string",
+      "description": "Zero-based page number."
+    },
+    {
+      "key": "size",
+      "value": "10",
+      "type": "string",
+      "description": "Number of books per page."
+    },
+    {
+      "key": "search",
+      "value": "Mosswood",
+      "type": "string",
+      "description": "Partial title or author text, case-insensitive."
+    },
+    {
+      "key": "author",
+      "value": "Mira Vale",
+      "type": "string",
+      "description": "Full author name, case-insensitive."
+    },
+    {
+      "key": "difficulty",
+      "value": "EASY",
+      "type": "string",
+      "description": "EASY, MEDIUM, or HARD."
+    },
+    {
+      "key": "bookId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "beginningSectionId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "medicalBayId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "communicationsId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "reactorId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "relayId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "safeEndingId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "lethalEndingId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "beginningResponse",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Catalogue",
+      "item": [
+        {
+          "name": "List books — default pagination",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/books",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "books"
+              ]
+            },
+            "description": "Returns page 0 with size 10, without filters."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", function () { pm.response.to.have.status(200); });",
+                  "pm.test(\"Catalogue response contains pagination metadata\", function () {",
+                  "    const body = pm.response.json();",
+                  "    pm.expect(body.content).to.be.an(\"array\");",
+                  "    [\"page\", \"size\", \"totalElements\", \"totalPages\"].forEach(key => pm.expect(body[key]).to.be.a(\"number\"));",
+                  "    pm.expect(body.last).to.be.a(\"boolean\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "List books — custom pagination",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/books?page={{page}}&size={{size}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "books"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "{{page}}"
+                },
+                {
+                  "key": "size",
+                  "value": "{{size}}"
+                }
+              ]
+            },
+            "description": "Change page and size collection variables to browse the catalogue."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", function () { pm.response.to.have.status(200); });",
+                  "pm.test(\"Catalogue response contains pagination metadata\", function () {",
+                  "    const body = pm.response.json();",
+                  "    pm.expect(body.content).to.be.an(\"array\");",
+                  "    [\"page\", \"size\", \"totalElements\", \"totalPages\"].forEach(key => pm.expect(body[key]).to.be.a(\"number\"));",
+                  "    pm.expect(body.last).to.be.a(\"boolean\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "List books — next page",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/books?page=1&size={{size}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "books"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "size",
+                  "value": "{{size}}"
+                }
+              ]
+            },
+            "description": "Returns the second page. An empty content array is valid if there are not enough books."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", function () { pm.response.to.have.status(200); });",
+                  "pm.test(\"Catalogue response contains pagination metadata\", function () {",
+                  "    const body = pm.response.json();",
+                  "    pm.expect(body.content).to.be.an(\"array\");",
+                  "    [\"page\", \"size\", \"totalElements\", \"totalPages\"].forEach(key => pm.expect(body[key]).to.be.a(\"number\"));",
+                  "    pm.expect(body.last).to.be.a(\"boolean\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "Search title or author",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/books?search={{search}}&page={{page}}&size={{size}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "books"
+              ],
+              "query": [
+                {
+                  "key": "search",
+                  "value": "{{search}}"
+                },
+                {
+                  "key": "page",
+                  "value": "{{page}}"
+                },
+                {
+                  "key": "size",
+                  "value": "{{size}}"
+                }
+              ]
+            },
+            "description": "Try Mosswood for a title match, Mira for an author match, or mixed-case text."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", function () { pm.response.to.have.status(200); });",
+                  "pm.test(\"Catalogue response contains pagination metadata\", function () {",
+                  "    const body = pm.response.json();",
+                  "    pm.expect(body.content).to.be.an(\"array\");",
+                  "    [\"page\", \"size\", \"totalElements\", \"totalPages\"].forEach(key => pm.expect(body[key]).to.be.a(\"number\"));",
+                  "    pm.expect(body.last).to.be.a(\"boolean\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "Filter by author",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/books?author={{author}}&page={{page}}&size={{size}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "books"
+              ],
+              "query": [
+                {
+                  "key": "author",
+                  "value": "{{author}}"
+                },
+                {
+                  "key": "page",
+                  "value": "{{page}}"
+                },
+                {
+                  "key": "size",
+                  "value": "{{size}}"
+                }
+              ]
+            },
+            "description": "Use the full author name from a book in your catalogue."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", function () { pm.response.to.have.status(200); });",
+                  "pm.test(\"Catalogue response contains pagination metadata\", function () {",
+                  "    const body = pm.response.json();",
+                  "    pm.expect(body.content).to.be.an(\"array\");",
+                  "    [\"page\", \"size\", \"totalElements\", \"totalPages\"].forEach(key => pm.expect(body[key]).to.be.a(\"number\"));",
+                  "    pm.expect(body.last).to.be.a(\"boolean\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "Filter by difficulty",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/books?difficulty={{difficulty}}&page={{page}}&size={{size}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "books"
+              ],
+              "query": [
+                {
+                  "key": "difficulty",
+                  "value": "{{difficulty}}"
+                },
+                {
+                  "key": "page",
+                  "value": "{{page}}"
+                },
+                {
+                  "key": "size",
+                  "value": "{{size}}"
+                }
+              ]
+            },
+            "description": "Choose EASY, MEDIUM, or HARD."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", function () { pm.response.to.have.status(200); });",
+                  "pm.test(\"Catalogue response contains pagination metadata\", function () {",
+                  "    const body = pm.response.json();",
+                  "    pm.expect(body.content).to.be.an(\"array\");",
+                  "    [\"page\", \"size\", \"totalElements\", \"totalPages\"].forEach(key => pm.expect(body[key]).to.be.a(\"number\"));",
+                  "    pm.expect(body.last).to.be.a(\"boolean\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "Combine search, author and difficulty",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/books?search={{search}}&author={{author}}&difficulty={{difficulty}}&page={{page}}&size={{size}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "books"
+              ],
+              "query": [
+                {
+                  "key": "search",
+                  "value": "{{search}}"
+                },
+                {
+                  "key": "author",
+                  "value": "{{author}}"
+                },
+                {
+                  "key": "difficulty",
+                  "value": "{{difficulty}}"
+                },
+                {
+                  "key": "page",
+                  "value": "{{page}}"
+                },
+                {
+                  "key": "size",
+                  "value": "{{size}}"
+                }
+              ]
+            },
+            "description": "All supplied filters must match. Default variables match Lanterns of Mosswood when the demos have been imported. Set page to 0 and size to 30 to simulate filtering after loading 30 books."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", function () { pm.response.to.have.status(200); });",
+                  "pm.test(\"Catalogue response contains pagination metadata\", function () {",
+                  "    const body = pm.response.json();",
+                  "    pm.expect(body.content).to.be.an(\"array\");",
+                  "    [\"page\", \"size\", \"totalElements\", \"totalPages\"].forEach(key => pm.expect(body[key]).to.be.a(\"number\"));",
+                  "    pm.expect(body.last).to.be.a(\"boolean\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Edge cases",
+      "item": [
+        {
+          "name": "Search with no matches",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/books?search=postman-no-match-7aebdfe7-7a01-4aac-b0c3-c406254f8f47&page={{page}}&size={{size}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "books"
+              ],
+              "query": [
+                {
+                  "key": "search",
+                  "value": "postman-no-match-7aebdfe7-7a01-4aac-b0c3-c406254f8f47"
+                },
+                {
+                  "key": "page",
+                  "value": "{{page}}"
+                },
+                {
+                  "key": "size",
+                  "value": "{{size}}"
+                }
+              ]
+            },
+            "description": "Returns an empty page for the supplied fixtures and demos."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", function () { pm.response.to.have.status(200); });",
+                  "pm.test(\"Catalogue response contains pagination metadata\", function () {",
+                  "    const body = pm.response.json();",
+                  "    pm.expect(body.content).to.be.an(\"array\");",
+                  "    [\"page\", \"size\", \"totalElements\", \"totalPages\"].forEach(key => pm.expect(body[key]).to.be.a(\"number\"));",
+                  "    pm.expect(body.last).to.be.a(\"boolean\");",
+                  "});",
+                  "pm.test(\"No matching books\", function () { pm.expect(pm.response.json().totalElements).to.equal(0); });"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "Blank filters",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/books?search=&author=&difficulty=&page={{page}}&size={{size}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "books"
+              ],
+              "query": [
+                {
+                  "key": "search",
+                  "value": ""
+                },
+                {
+                  "key": "author",
+                  "value": ""
+                },
+                {
+                  "key": "difficulty",
+                  "value": ""
+                },
+                {
+                  "key": "page",
+                  "value": "{{page}}"
+                },
+                {
+                  "key": "size",
+                  "value": "{{size}}"
+                }
+              ]
+            },
+            "description": "Blank filters behave like omitted filters."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", function () { pm.response.to.have.status(200); });",
+                  "pm.test(\"Catalogue response contains pagination metadata\", function () {",
+                  "    const body = pm.response.json();",
+                  "    pm.expect(body.content).to.be.an(\"array\");",
+                  "    [\"page\", \"size\", \"totalElements\", \"totalPages\"].forEach(key => pm.expect(body[key]).to.be.a(\"number\"));",
+                  "    pm.expect(body.last).to.be.a(\"boolean\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "Invalid difficulty",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/books?difficulty=IMPOSSIBLE",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "books"
+              ],
+              "query": [
+                {
+                  "key": "difficulty",
+                  "value": "IMPOSSIBLE"
+                }
+              ]
+            },
+            "description": "An unsupported difficulty is rejected with HTTP 400."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 400\", function () { pm.response.to.have.status(400); });",
+                  "pm.test(\"Error code and description\", function () {",
+                  "    const error = pm.response.json();",
+                  "    pm.expect(error.code).to.equal(\"INVALID_DIFFICULTY\");",
+                  "    pm.expect(error.description).to.equal(\"Difficulty must be EASY, MEDIUM, or HARD.\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Adventure walkthrough",
+      "description": "Import Signal from Ember Station and run these requests in order. The collection saves book and section IDs from each response.",
+      "item": [
+        {
+          "name": "Find the demo book",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/books?search=Signal+from+Ember+Station&page=0&size=10",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "books"
+              ],
+              "query": [
+                {
+                  "key": "search",
+                  "value": "Signal from Ember Station"
+                },
+                {
+                  "key": "page",
+                  "value": "0"
+                },
+                {
+                  "key": "size",
+                  "value": "10"
+                }
+              ]
+            },
+            "description": "Saves the book ID from the catalogue. Import demo-signal-from-ember-station.json first."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", function () { pm.expect(pm.response.code).to.equal(200); });",
+                  "pm.test(\"Verify Find the demo book\", function () {",
+                  "    const body = pm.response.json();",
+                  "    const demo = body.content.find(book => book.title === \"Signal from Ember Station\");",
+                  "    pm.expect(Boolean(demo)).to.equal(true);",
+                  "    pm.expect(Number.isSafeInteger(demo.id) && demo.id > 0).to.equal(true);",
+                  "    pm.collectionVariables.set(\"bookId\", String(demo.id));",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "Get book details",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/books/{{bookId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "books",
+                "{{bookId}}"
+              ]
+            },
+            "description": "Verifies the book summary and saves beginningSectionId."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", function () { pm.expect(pm.response.code).to.equal(200); });",
+                  "pm.test(\"Verify Get book details\", function () {",
+                  "    const body = pm.response.json();",
+                  "    pm.expect(body.id).to.equal(Number(pm.collectionVariables.get(\"bookId\")));",
+                  "    pm.expect(body.title).to.equal(\"Signal from Ember Station\");",
+                  "    pm.expect(body.author).to.equal(\"Leila North\");",
+                  "    pm.expect(body.difficulty).to.equal(\"HARD\");",
+                  "    pm.expect(Number.isSafeInteger(body.beginningSectionId) && body.beginningSectionId > 0).to.equal(true);",
+                  "    pm.collectionVariables.set(\"beginningSectionId\", String(body.beginningSectionId));",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "Get the beginning section",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/books/{{bookId}}/sections/{{beginningSectionId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "books",
+                "{{bookId}}",
+                "sections",
+                "{{beginningSectionId}}"
+              ]
+            },
+            "description": "Checks choice order, damage, and healing. Saves the medical bay destination."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", function () { pm.expect(pm.response.code).to.equal(200); });",
+                  "pm.test(\"Verify Get the beginning section\", function () {",
+                  "    const body = pm.response.json();",
+                  "    pm.expect(body.id).to.equal(Number(pm.collectionVariables.get(\"beginningSectionId\")));",
+                  "    pm.expect(body.type).to.equal(\"BEGIN\");",
+                  "    pm.expect(typeof body.text === \"string\" && body.text.trim().length > 0).to.equal(true);",
+                  "    pm.expect(Array.isArray(body.options)).to.equal(true);",
+                  "    pm.expect(body.options.length).to.equal(2);",
+                  "    pm.expect(body.options[0].description).to.equal(\"Cross the damaged gantry\");",
+                  "    pm.expect(body.options[1].description).to.equal(\"Check the medical bay first\");",
+                  "    pm.expect(body.options[0].consequence.type).to.equal(\"LOSE_HEALTH\");",
+                  "    pm.expect(body.options[0].consequence.value).to.equal(4);",
+                  "    pm.expect(body.options[0].consequence.text).to.equal(\"A loose panel strikes your suit.\");",
+                  "    pm.expect(body.options[1].consequence.type).to.equal(\"GAIN_HEALTH\");",
+                  "    pm.expect(body.options[1].consequence.value).to.equal(4);",
+                  "    pm.expect(body.options[1].consequence.text).to.equal(\"An emergency patch treats your injuries.\");",
+                  "    pm.expect(Number.isSafeInteger(body.options[1].gotoId) && body.options[1].gotoId > 0).to.equal(true);",
+                  "    pm.collectionVariables.set(\"medicalBayId\", String(body.options[1].gotoId));",
+                  "    pm.collectionVariables.set(\"beginningResponse\", JSON.stringify(body));",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "Read the medical bay",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/books/{{bookId}}/sections/{{medicalBayId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "books",
+                "{{bookId}}",
+                "sections",
+                "{{medicalBayId}}"
+              ]
+            },
+            "description": "Verifies the return choice leads to the same beginning ID and saves the communications destination."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", function () { pm.expect(pm.response.code).to.equal(200); });",
+                  "pm.test(\"Verify Read the medical bay\", function () {",
+                  "    const body = pm.response.json();",
+                  "    pm.expect(body.id).to.equal(Number(pm.collectionVariables.get(\"medicalBayId\")));",
+                  "    pm.expect(body.type).to.equal(\"NODE\");",
+                  "    pm.expect(typeof body.text === \"string\" && body.text.trim().length > 0).to.equal(true);",
+                  "    pm.expect(Array.isArray(body.options)).to.equal(true);",
+                  "    pm.expect(body.options[0].consequence).to.equal(null);",
+                  "    pm.expect(body.options[1].gotoId).to.equal(Number(pm.collectionVariables.get(\"beginningSectionId\")));",
+                  "    pm.expect(Number.isSafeInteger(body.options[0].gotoId) && body.options[0].gotoId > 0).to.equal(true);",
+                  "    pm.collectionVariables.set(\"communicationsId\", String(body.options[0].gotoId));",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "Read communications",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/books/{{bookId}}/sections/{{communicationsId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "books",
+                "{{bookId}}",
+                "sections",
+                "{{communicationsId}}"
+              ]
+            },
+            "description": "Follows the path to the reactor relay."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", function () { pm.expect(pm.response.code).to.equal(200); });",
+                  "pm.test(\"Verify Read communications\", function () {",
+                  "    const body = pm.response.json();",
+                  "    pm.expect(body.id).to.equal(Number(pm.collectionVariables.get(\"communicationsId\")));",
+                  "    pm.expect(body.type).to.equal(\"NODE\");",
+                  "    pm.expect(typeof body.text === \"string\" && body.text.trim().length > 0).to.equal(true);",
+                  "    pm.expect(Array.isArray(body.options)).to.equal(true);",
+                  "    pm.expect(Number.isSafeInteger(body.options[0].gotoId) && body.options[0].gotoId > 0).to.equal(true);",
+                  "    pm.collectionVariables.set(\"reactorId\", String(body.options[0].gotoId));",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "Read the reactor",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/books/{{bookId}}/sections/{{reactorId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "books",
+                "{{bookId}}",
+                "sections",
+                "{{reactorId}}"
+              ]
+            },
+            "description": "Saves the manual switch destination."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", function () { pm.expect(pm.response.code).to.equal(200); });",
+                  "pm.test(\"Verify Read the reactor\", function () {",
+                  "    const body = pm.response.json();",
+                  "    pm.expect(body.id).to.equal(Number(pm.collectionVariables.get(\"reactorId\")));",
+                  "    pm.expect(body.type).to.equal(\"NODE\");",
+                  "    pm.expect(typeof body.text === \"string\" && body.text.trim().length > 0).to.equal(true);",
+                  "    pm.expect(Array.isArray(body.options)).to.equal(true);",
+                  "    pm.expect(Number.isSafeInteger(body.options[0].gotoId) && body.options[0].gotoId > 0).to.equal(true);",
+                  "    pm.collectionVariables.set(\"relayId\", String(body.options[0].gotoId));",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "Read the relay choices",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/books/{{bookId}}/sections/{{relayId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "books",
+                "{{bookId}}",
+                "sections",
+                "{{relayId}}"
+              ]
+            },
+            "description": "Checks both ending destinations and the full lethal damage amount. The frontend applies the consequence."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", function () { pm.expect(pm.response.code).to.equal(200); });",
+                  "pm.test(\"Verify Read the relay choices\", function () {",
+                  "    const body = pm.response.json();",
+                  "    pm.expect(body.id).to.equal(Number(pm.collectionVariables.get(\"relayId\")));",
+                  "    pm.expect(body.type).to.equal(\"NODE\");",
+                  "    pm.expect(typeof body.text === \"string\" && body.text.trim().length > 0).to.equal(true);",
+                  "    pm.expect(Array.isArray(body.options)).to.equal(true);",
+                  "    pm.expect(body.options[0].consequence).to.equal(null);",
+                  "    pm.expect(body.options[1].consequence.type).to.equal(\"LOSE_HEALTH\");",
+                  "    pm.expect(body.options[1].consequence.value).to.equal(12);",
+                  "    pm.expect(body.options[1].consequence.text).to.equal(\"The flare overwhelms your suit shielding.\");",
+                  "    pm.expect(Number.isSafeInteger(body.options[0].gotoId) && body.options[0].gotoId > 0).to.equal(true);",
+                  "    pm.collectionVariables.set(\"safeEndingId\", String(body.options[0].gotoId));",
+                  "    pm.expect(Number.isSafeInteger(body.options[1].gotoId) && body.options[1].gotoId > 0).to.equal(true);",
+                  "    pm.collectionVariables.set(\"lethalEndingId\", String(body.options[1].gotoId));",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "Read the rescue ending",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/books/{{bookId}}/sections/{{safeEndingId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "books",
+                "{{bookId}}",
+                "sections",
+                "{{safeEndingId}}"
+              ]
+            },
+            "description": "Verifies an ending has no choices."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", function () { pm.expect(pm.response.code).to.equal(200); });",
+                  "pm.test(\"Verify Read the rescue ending\", function () {",
+                  "    const body = pm.response.json();",
+                  "    pm.expect(body.id).to.equal(Number(pm.collectionVariables.get(\"safeEndingId\")));",
+                  "    pm.expect(body.type).to.equal(\"END\");",
+                  "    pm.expect(typeof body.text === \"string\" && body.text.trim().length > 0).to.equal(true);",
+                  "    pm.expect(Array.isArray(body.options)).to.equal(true);",
+                  "    pm.expect(body.options.length).to.equal(0);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "Read the lethal choice destination",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/books/{{bookId}}/sections/{{lethalEndingId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "books",
+                "{{bookId}}",
+                "sections",
+                "{{lethalEndingId}}"
+              ]
+            },
+            "description": "The destination is an ending. The frontend gives zero-health death precedence."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", function () { pm.expect(pm.response.code).to.equal(200); });",
+                  "pm.test(\"Verify Read the lethal choice destination\", function () {",
+                  "    const body = pm.response.json();",
+                  "    pm.expect(body.id).to.equal(Number(pm.collectionVariables.get(\"lethalEndingId\")));",
+                  "    pm.expect(body.type).to.equal(\"END\");",
+                  "    pm.expect(typeof body.text === \"string\" && body.text.trim().length > 0).to.equal(true);",
+                  "    pm.expect(Array.isArray(body.options)).to.equal(true);",
+                  "    pm.expect(body.options.length).to.equal(0);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "Read the beginning again",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/books/{{bookId}}/sections/{{beginningSectionId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "books",
+                "{{bookId}}",
+                "sections",
+                "{{beginningSectionId}}"
+              ]
+            },
+            "description": "Confirms the beginning response is identical after reading other sections."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", function () { pm.expect(pm.response.code).to.equal(200); });",
+                  "pm.test(\"Verify Read the beginning again\", function () {",
+                  "    const body = pm.response.json();",
+                  "    pm.expect(body.id).to.equal(Number(pm.collectionVariables.get(\"beginningSectionId\")));",
+                  "    pm.expect(body.type).to.equal(\"BEGIN\");",
+                  "    pm.expect(typeof body.text === \"string\" && body.text.trim().length > 0).to.equal(true);",
+                  "    pm.expect(Array.isArray(body.options)).to.equal(true);",
+                  "    pm.expect(JSON.stringify(body)).to.equal(pm.collectionVariables.get(\"beginningResponse\"));",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Adventure request errors",
+      "description": "Run the walkthrough first so bookId and beginningSectionId are set.",
+      "item": [
+        {
+          "name": "Invalid book ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/books/not-a-number",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "books",
+                "not-a-number"
+              ]
+            },
+            "description": "A nonnumeric book ID returns HTTP 400."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 400\", function () { pm.expect(pm.response.code).to.equal(400); });",
+                  "pm.test(\"Error code and description\", function () {",
+                  "    const error = pm.response.json();",
+                  "    pm.expect(error.code).to.equal(\"INVALID_BOOK_ID\");",
+                  "    pm.expect(error.description).to.equal(\"Book ID must be a positive whole number.\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "Unknown book",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/books/9223372036854775807",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "books",
+                "9223372036854775807"
+              ]
+            },
+            "description": "A valid numeric ID for a missing book returns HTTP 404."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 404\", function () { pm.expect(pm.response.code).to.equal(404); });",
+                  "pm.test(\"Error code and description\", function () {",
+                  "    const error = pm.response.json();",
+                  "    pm.expect(error.code).to.equal(\"BOOK_NOT_FOUND\");",
+                  "    pm.expect(error.description).to.equal(\"The requested book was not found.\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "Invalid section ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/books/{{bookId}}/sections/forest",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "books",
+                "{{bookId}}",
+                "sections",
+                "forest"
+              ]
+            },
+            "description": "A nonnumeric section ID returns HTTP 400."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 400\", function () { pm.expect(pm.response.code).to.equal(400); });",
+                  "pm.test(\"Error code and description\", function () {",
+                  "    const error = pm.response.json();",
+                  "    pm.expect(error.code).to.equal(\"INVALID_SECTION_ID\");",
+                  "    pm.expect(error.description).to.equal(\"Section ID must be a positive whole number within the supported range.\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "Section ID outside the supported range",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/books/{{bookId}}/sections/9223372036854775808",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "books",
+                "{{bookId}}",
+                "sections",
+                "9223372036854775808"
+              ]
+            },
+            "description": "A decimal ID outside the signed 64-bit range returns HTTP 400."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 400\", function () { pm.expect(pm.response.code).to.equal(400); });",
+                  "pm.test(\"Error code and description\", function () {",
+                  "    const error = pm.response.json();",
+                  "    pm.expect(error.code).to.equal(\"INVALID_SECTION_ID\");",
+                  "    pm.expect(error.description).to.equal(\"Section ID must be a positive whole number within the supported range.\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "Unknown section",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/books/{{bookId}}/sections/9223372036854775807",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "books",
+                "{{bookId}}",
+                "sections",
+                "9223372036854775807"
+              ]
+            },
+            "description": "A missing section in an existing book returns HTTP 404."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 404\", function () { pm.expect(pm.response.code).to.equal(404); });",
+                  "pm.test(\"Error code and description\", function () {",
+                  "    const error = pm.response.json();",
+                  "    pm.expect(error.code).to.equal(\"SECTION_NOT_FOUND\");",
+                  "    pm.expect(error.description).to.equal(\"The requested section was not found in this book.\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "Section lookup in an unknown book",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/books/9223372036854775807/sections/{{beginningSectionId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "books",
+                "9223372036854775807",
+                "sections",
+                "{{beginningSectionId}}"
+              ]
+            },
+            "description": "A section ID only resolves within its own book."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 404\", function () { pm.expect(pm.response.code).to.equal(404); });",
+                  "pm.test(\"Error code and description\", function () {",
+                  "    const error = pm.response.json();",
+                  "    pm.expect(error.code).to.equal(\"SECTION_NOT_FOUND\");",
+                  "    pm.expect(error.description).to.equal(\"The requested section was not found in this book.\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "response": []
+        }
+      ]
+    }
+  ]
+}
