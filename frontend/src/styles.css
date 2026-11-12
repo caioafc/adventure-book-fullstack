@@ -8,3 +8,28 @@
 body {
   margin: 0;
 }
+
+button {
+  border: 1px solid #2c4b3d;
+  border-radius: 0.45rem;
+  padding: 0.65rem 1rem;
+  background: #2c4b3d;
+  color: #fff;
+  font: inherit;
+  font-weight: 650;
+  cursor: pointer;
+}
+
+button:hover:not(:disabled) {
+  background: #20382d;
+}
+
+button:focus-visible {
+  outline: 2px solid #2c4b3d;
+  outline-offset: 3px;
+}
+
+button:disabled {
+  cursor: default;
+  opacity: 0.72;
+}

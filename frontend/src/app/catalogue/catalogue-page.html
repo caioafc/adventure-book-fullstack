@@ -11,9 +11,9 @@
       Embark on epic quests where every choice shapes your destiny. Explore mystical realms, solve
       ancient mysteries, and become the hero of your own story.
     </p>
-    @if (state.nextPage > 0) {
+    @if (state.catalogueTotal !== null) {
       <p class="available-count" role="status">
-        {{ state.totalElements }} Epic Adventures Available
+        {{ state.catalogueTotal }} Epic Adventures Available
       </p>
     }
   </div>
@@ -26,6 +26,61 @@
       Choose your next adventure from our collection of interactive tales. Each book offers unique
       paths and multiple endings on your choices.
     </p>
+  </div>
+
+  <div class="catalogue-filters" role="group" aria-label="Filter adventures">
+    <label class="catalogue-search">
+      <svg
+        class="search-icon"
+        width="16"
+        height="16"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        aria-hidden="true"
+        focusable="false"
+      >
+        <circle cx="10.5" cy="10.5" r="6.5" />
+        <path d="m15.1 15.1 4.4 4.4" />
+      </svg>
+      <input
+        #search
+        type="search"
+        aria-label="Search adventures by title or author"
+        placeholder="Search adventures…"
+        [value]="state.filters.search"
+        (input)="catalogue.setFilters({ search: search.value })"
+      />
+    </label>
+    <div class="filter-badges" role="group" aria-label="Difficulty filters">
+      <span class="filter-label" aria-hidden="true">
+        <svg
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linejoin="round"
+          focusable="false"
+        >
+          <path d="M3 4h18l-7 8v7l-4 2v-9L3 4Z" />
+        </svg>
+        Filters:
+      </span>
+      @for (level of difficulties; track level) {
+        <button
+          type="button"
+          class="filter-badge"
+          [attr.aria-pressed]="state.filters.difficulty === level"
+          (click)="toggleDifficulty(level)"
+        >
+          {{ level | titlecase }}
+        </button>
+      }
+    </div>
   </div>
 
   @if (state.books.length > 0) {
@@ -55,14 +110,19 @@
   @if (state.error) {
     <div class="feedback error-message" role="alert">
       <p>{{ state.error }}</p>
-      <button type="button" (click)="catalogue.loadNextPage()">Retry</button>
+      <button type="button" (click)="catalogue.retry()">Retry</button>
     </div>
-  } @else if (state.loading && state.books.length === 0) {
+  } @else if (state.loading && (state.books.length === 0 || state.last)) {
     <p class="feedback" role="status">Loading adventures…</p>
   } @else if (state.last && state.books.length === 0) {
     <div class="feedback">
-      <h3>No adventures yet</h3>
-      <p>Add a book to the inbox to get started.</p>
+      @if (catalogue.hasFilters()) {
+        <h3>No matching adventures</h3>
+        <button type="button" (click)="catalogue.clearFilters()">Clear filters</button>
+      } @else {
+        <h3>No adventures yet</h3>
+        <p>Add a book to the inbox to get started.</p>
+      }
     </div>
   } @else if (state.books.length > 0 && !state.last) {
     <div class="catalogue-actions">
