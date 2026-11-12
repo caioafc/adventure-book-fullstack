@@ -1,0 +1,56 @@
+:host {
+  display: block;
+}
+
+section {
+  margin-block-start: 1.5rem;
+  padding-block-start: 1.25rem;
+  border-block-start: 1px solid #e7dac0;
+}
+
+h2 {
+  margin: 0 0 1rem;
+  font-size: 1.25rem;
+}
+
+ol {
+  display: grid;
+  gap: 0.75rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+button {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  width: 100%;
+  padding: 0.9rem 1rem;
+  border-color: #e7dac0;
+  border-radius: 0.75rem;
+  background: #fffcf8;
+  color: inherit;
+  font-weight: 400;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+  text-align: start;
+}
+
+button:hover:not(:disabled) {
+  background: #f9eedc;
+  border-color: #c8aa76;
+}
+
+.choice-number {
+  flex: none;
+  min-width: 1.75rem;
+  padding-inline: 0.3rem;
+  box-sizing: border-box;
+  border-radius: 999px;
+  background: #49382c;
+  color: #fff;
+  font-size: 0.875rem;
+  font-weight: 700;
+  text-align: center;
+}

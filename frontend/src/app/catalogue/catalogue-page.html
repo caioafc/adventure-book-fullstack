@@ -83,21 +83,33 @@
     </div>
   </div>
 
+  @if (adventure.storageNotice(); as notice) {
+    <p class="feedback" role="status">{{ notice }}</p>
+  }
+
   @if (state.books.length > 0) {
     <ul class="book-grid">
       @for (book of state.books; track book.id) {
+        @let progress = adventure.savedProgress().get(book.id);
         <li>
           <article class="book-card">
-            <span
-              class="difficulty"
-              [class.difficulty-medium]="book.difficulty === 'MEDIUM'"
-              [class.difficulty-hard]="book.difficulty === 'HARD'"
-            >
-              {{ book.difficulty | titlecase }}
-            </span>
+            <div class="book-badges">
+              <span
+                class="difficulty"
+                [class.difficulty-medium]="book.difficulty === 'MEDIUM'"
+                [class.difficulty-hard]="book.difficulty === 'HARD'"
+              >
+                {{ book.difficulty | titlecase }}
+              </span>
+              @if (progress?.status === 'completed') {
+                <span class="completed-badge">Completed</span>
+              }
+            </div>
             <h3>{{ book.title }}</h3>
             <p class="author">by {{ book.author }}</p>
-            <button type="button" class="begin-button" disabled>Begin quest</button>
+            <button type="button" class="begin-button" (click)="openAdventure(book.id)">
+              {{ progress ? 'Return to quest' : 'Begin quest' }}
+            </button>
           </article>
         </li>
       }

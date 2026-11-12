@@ -33,3 +33,13 @@ button:disabled {
   cursor: default;
   opacity: 0.72;
 }
+
+.completed-badge {
+  display: inline-block;
+  padding: 0.2rem 0.65rem;
+  border-radius: 1rem;
+  background: #2c4b3d;
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 650;
+}

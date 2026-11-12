@@ -1,0 +1,49 @@
+<section class="adventure" aria-labelledby="adventure-title">
+  @if (bookId(); as id) {
+    @let game = store.adventure();
+    @let loading = store.loading();
+    @let error = store.error();
+    <div class="adventure-toolbar">
+      <a routerLink="/">← Back to the library</a>
+      @if (game || store.savedProgress().has(id)) {
+        <button type="button" (click)="store.restart(id)">Restart</button>
+      }
+    </div>
+
+    <div class="story">
+      <h1 id="adventure-title">{{ game?.book?.title ?? 'Adventure' }}</h1>
+      @if (store.storageNotice(); as notice) {
+        <p role="status">{{ notice }}</p>
+      }
+
+      @if (error) {
+        <p role="alert">{{ error }}</p>
+        @if (!game) {
+          <button type="button" (click)="store.open(id)">Try again</button>
+        }
+      }
+
+      @if (loading) {
+        <p role="status">Loading story…</p>
+      }
+
+      @if (game) {
+        @if (game.progress.status === 'completed') {
+          <p class="ending-status"><span class="completed-badge">Completed</span></p>
+        }
+        <p class="story-text" aria-live="polite">{{ game.section.text }}</p>
+        @if (game.progress.status === 'playing') {
+          <app-adventure-choices
+            [options]="game.section.options"
+            [loading]="loading"
+            (selected)="store.choose($event)"
+          />
+        }
+      }
+    </div>
+  } @else {
+    <a routerLink="/">← Back to the library</a>
+    <h1 id="adventure-title">Adventure unavailable</h1>
+    <p>The book address is invalid.</p>
+  }
+</section>

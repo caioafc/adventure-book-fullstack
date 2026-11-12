@@ -22,7 +22,7 @@
 .catalogue-hero h1,
 .library h2,
 .book-card h3 {
-  font-family: "Cormorant Garamond", Georgia, serif;
+  font-family: 'Cormorant Garamond', Georgia, serif;
 }
 
 .catalogue-hero h1 {
@@ -197,6 +197,12 @@
   overflow-wrap: anywhere;
 }
 
+.book-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
 .difficulty {
   border-radius: 1rem;
   padding: 0.2rem 0.65rem;
@@ -259,7 +265,9 @@
 
 @media (max-width: 35rem) {
   .catalogue-hero {
-    background-position: center, 62% center;
+    background-position:
+      center,
+      62% center;
   }
 
   .hero-decoration {

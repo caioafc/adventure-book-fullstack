@@ -1,0 +1,57 @@
+.adventure {
+  width: min(56rem, calc(100% - 2rem));
+  margin: 1.25rem auto 4rem;
+  color: #392c24;
+  font-family: Georgia, serif;
+}
+
+.adventure a {
+  color: inherit;
+}
+
+.adventure-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-block-end: 1.5rem;
+}
+
+.adventure-toolbar button {
+  border-color: #ddd0c4;
+  background: transparent;
+  color: inherit;
+  font-weight: 400;
+}
+
+.adventure-toolbar button:hover:not(:disabled) {
+  background: #f2ebe2;
+}
+
+.story {
+  padding: clamp(1rem, 4vw, 1.5rem);
+  border: 1px solid #e7dac0;
+  border-radius: 0.75rem;
+  background: linear-gradient(#fbf8f4, #f2ede7);
+}
+
+.story h1 {
+  margin: 0 0 1.5rem;
+  font-size: clamp(1.55rem, 4vw, 2rem);
+  overflow-wrap: anywhere;
+  text-align: center;
+}
+
+.story-text {
+  margin: 0;
+  font-size: 1.125rem;
+  line-height: 1.65;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.ending-status {
+  margin: 0 0 1.5rem;
+  text-align: center;
+}
