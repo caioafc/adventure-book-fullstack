@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "Adventure Book API",
-    "description": "Tests for GET /api/books, GET /api/books/{bookId}, and GET /api/books/{bookId}/sections/{sectionId}. Start the backend, import the collection, and set baseUrl if needed. Catalogue and Edge cases can run with an empty database. For the Adventure walkthrough and Adventure request errors, queue demo-signal-from-ember-station.json from fixtures/books/demo into books/ready and run the requests in order. The walkthrough saves IDs returned by the API. Page numbers start at zero. Error requests verify the HTTP status, code, and description.",
+    "description": "Tests for GET /api/books, GET /api/books/filters, GET /api/books/{bookId}, and GET /api/books/{bookId}/sections/{sectionId}. Start the backend, import the collection, and set baseUrl if needed. Catalogue and Edge cases can run with an empty database. For the Adventure walkthrough and Adventure request errors, queue demo-signal-from-ember-station.json from fixtures/books/demo into books/ready and run the requests in order. The walkthrough saves IDs returned by the API. Page numbers start at zero. Error requests verify the HTTP status, code, and description.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
@@ -19,7 +19,7 @@
     },
     {
       "key": "size",
-      "value": "10",
+      "value": "3",
       "type": "string",
       "description": "Number of books per page."
     },
@@ -28,12 +28,6 @@
       "value": "Mosswood",
       "type": "string",
       "description": "Partial title or author text, case-insensitive."
-    },
-    {
-      "key": "author",
-      "value": "Mira Vale",
-      "type": "string",
-      "description": "Full author name, case-insensitive."
     },
     {
       "key": "difficulty",
@@ -91,6 +85,51 @@
     {
       "name": "Catalogue",
       "item": [
+        {
+          "name": "List catalogue filters",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/books/filters",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "books",
+                "filters"
+              ]
+            },
+            "description": "Returns the available filter definitions, including every supported difficulty even when the catalogue is empty."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", function () { pm.response.to.have.status(200); });",
+                  "pm.test(\"Difficulty is advertised as a select filter\", function () {",
+                  "    const body = pm.response.json();",
+                  "    pm.expect(body).to.be.an(\"array\");",
+                  "    const difficulty = body.find(filter => filter.key === \"difficulty\");",
+                  "    pm.expect(Boolean(difficulty)).to.equal(true);",
+                  "    pm.expect(difficulty.label).to.equal(\"Difficulty\");",
+                  "    pm.expect(difficulty.type).to.equal(\"select\");",
+                  "    pm.expect(JSON.stringify(difficulty.options)).to.equal(JSON.stringify([\"EASY\", \"MEDIUM\", \"HARD\"]));",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
         {
           "name": "List books — default pagination",
           "request": {
@@ -290,61 +329,6 @@
           "response": []
         },
         {
-          "name": "Filter by author",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Accept",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/books?author={{author}}&page={{page}}&size={{size}}",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "books"
-              ],
-              "query": [
-                {
-                  "key": "author",
-                  "value": "{{author}}"
-                },
-                {
-                  "key": "page",
-                  "value": "{{page}}"
-                },
-                {
-                  "key": "size",
-                  "value": "{{size}}"
-                }
-              ]
-            },
-            "description": "Use the full author name from a book in your catalogue."
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test(\"HTTP 200\", function () { pm.response.to.have.status(200); });",
-                  "pm.test(\"Catalogue response contains pagination metadata\", function () {",
-                  "    const body = pm.response.json();",
-                  "    pm.expect(body.content).to.be.an(\"array\");",
-                  "    [\"page\", \"size\", \"totalElements\", \"totalPages\"].forEach(key => pm.expect(body[key]).to.be.a(\"number\"));",
-                  "    pm.expect(body.last).to.be.a(\"boolean\");",
-                  "});"
-                ]
-              }
-            }
-          ],
-          "response": []
-        },
-        {
           "name": "Filter by difficulty",
           "request": {
             "method": "GET",
@@ -392,6 +376,10 @@
                   "    pm.expect(body.content).to.be.an(\"array\");",
                   "    [\"page\", \"size\", \"totalElements\", \"totalPages\"].forEach(key => pm.expect(body[key]).to.be.a(\"number\"));",
                   "    pm.expect(body.last).to.be.a(\"boolean\");",
+                  "});",
+                  "pm.test(\"Every returned book matches the requested difficulty\", function () {",
+                  "    const difficulty = pm.variables.get(\"difficulty\");",
+                  "    pm.response.json().content.forEach(book => pm.expect(book.difficulty).to.equal(difficulty));",
                   "});"
                 ]
               }
@@ -400,7 +388,7 @@
           "response": []
         },
         {
-          "name": "Combine search, author and difficulty",
+          "name": "Combine search and difficulty",
           "request": {
             "method": "GET",
             "header": [
@@ -410,7 +398,7 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/books?search={{search}}&author={{author}}&difficulty={{difficulty}}&page={{page}}&size={{size}}",
+              "raw": "{{baseUrl}}/api/books?search={{search}}&difficulty={{difficulty}}&page={{page}}&size={{size}}",
               "host": [
                 "{{baseUrl}}"
               ],
@@ -422,10 +410,6 @@
                 {
                   "key": "search",
                   "value": "{{search}}"
-                },
-                {
-                  "key": "author",
-                  "value": "{{author}}"
                 },
                 {
                   "key": "difficulty",
@@ -441,7 +425,7 @@
                 }
               ]
             },
-            "description": "All supplied filters must match. Default variables match Lanterns of Mosswood when the demos have been imported. Set page to 0 and size to 30 to simulate filtering after loading 30 books."
+            "description": "Search and difficulty must both match. The default values match Lanterns of Mosswood when the demos are imported."
           },
           "event": [
             {
@@ -455,6 +439,14 @@
                   "    pm.expect(body.content).to.be.an(\"array\");",
                   "    [\"page\", \"size\", \"totalElements\", \"totalPages\"].forEach(key => pm.expect(body[key]).to.be.a(\"number\"));",
                   "    pm.expect(body.last).to.be.a(\"boolean\");",
+                  "});",
+                  "pm.test(\"Every returned book matches both filters\", function () {",
+                  "    const search = pm.variables.get(\"search\").trim().toLowerCase();",
+                  "    const difficulty = pm.variables.get(\"difficulty\");",
+                  "    pm.response.json().content.forEach(book => {",
+                  "        pm.expect(book.difficulty).to.equal(difficulty);",
+                  "        pm.expect([book.title, book.author].some(text => text.toLowerCase().includes(search))).to.equal(true);",
+                  "    });",
                   "});"
                 ]
               }
@@ -534,7 +526,7 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/books?search=&author=&difficulty=&page={{page}}&size={{size}}",
+              "raw": "{{baseUrl}}/api/books?search=&difficulty=&page={{page}}&size={{size}}",
               "host": [
                 "{{baseUrl}}"
               ],
@@ -545,10 +537,6 @@
               "query": [
                 {
                   "key": "search",
-                  "value": ""
-                },
-                {
-                  "key": "author",
                   "value": ""
                 },
                 {
